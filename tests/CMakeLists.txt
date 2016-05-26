@@ -21,8 +21,8 @@ link_directories(${Boost_LIBRARY_DIRS})
 
 ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)
 
-set(TEST_BIN_DIR ${Snap_SOURCE_DIR}/bin)
-set(ASM_DIR ${Snap_SOURCE_DIR}/asm)
+set(TEST_BIN_DIR ${Snap_SOURCE_DIR}/bin/tests)
+set(ASM_DIR ${Snap_SOURCE_DIR}/asm/tests)
 
 # ---- Make Test Function --------------------------------------------------- #
 

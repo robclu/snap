@@ -20,8 +20,12 @@
 
 #include <stdint.h>
 
-// Testing 
-#define AVX_ENABLED 0
+// Specifies the vector instruction set enabled.
+#define NEON_ENABLED   0
+#define NEON64_ENABLED 0
+#define AVX2_ENABLED   0
+#define AVX_ENABLED    0
+#define SSE_ENABLED    0
 
 /// Defines alignment for MSVC compiler.
 #if defined(_MSC_VER) && defined(_MSC_FULL_VER)
@@ -38,27 +42,27 @@
 
 namespace snap {
 
-  /// Defines all possible simd instruction 
-  /// types supported by snap.
-  enum simd_types : uint8_t {
-    ST_SSE    = 0 ,
-    ST_SSE2   = 1 , 
-    ST_SSE3   = 2 , 
-    ST_SSSE3  = 4 ,
-    ST_SSE41  = 5 ,
-    ST_SSE42  = 6 , 
-    ST_AVX    = 7 ,
-    ST_AVX2   = 8 ,
-    ST_NEON   = 9 ,
-    ST_NEON64 = 10
-  };
+/// Defines all possible simd instruction 
+/// types supported by snap.
+enum simd_types : uint8_t {
+  ST_SSE    = 0 ,
+  ST_SSE2   = 1 , 
+  ST_SSE3   = 2 , 
+  ST_SSSE3  = 4 ,
+  ST_SSE41  = 5 ,
+  ST_SSE42  = 6 , 
+  ST_AVX    = 7 ,
+  ST_AVX2   = 8 ,
+  ST_NEON   = 9 ,
+  ST_NEON64 = 10
+};
 
-  /// Defines all possible alignments.
-  enum alignments : uint8_t {
-    AL_8  = 8 , 
-    AL_16 = 16,
-    AL_32 = 32
-  };
+/// Defines all possible alignments.
+enum alignments : uint8_t {
+  AL_8  = 8 , 
+  AL_16 = 16,
+  AL_32 = 32
+};
 
 } // namespace snap
 
@@ -69,6 +73,7 @@ namespace snap {
 
 namespace snap {
 #if defined(__aarch64__)
+#define NEON64_ENABLED 1
 
   /// Defines memory alignment.
   static constexpr uint8_t ALIGNMENT = AL_8;
@@ -76,6 +81,7 @@ namespace snap {
   /// Defines highest level of SIMD instructions.
   static constexpr uint8_t SIMD_TYPE = ST_NEON64;
 #else 
+#define NEON_ENABLED 1
   /// Defines memory alignment.
   static constexpr uint8_t ALIGNMENT = AL_4;
 
@@ -84,8 +90,9 @@ namespace snap {
 #endif
 } // namespace snap
 
-#elif defined(__AVX2__) && AVX_ENABLED
+#elif defined(__AVX2__) && AVX2_ENABLED
 #include <immintrin.h>
+#define AVX2_ENABLED 1
 namespace snap {
   /// Defines memory alignment.
   static constexpr uint8_t ALIGNMENT = AL_32;
@@ -95,6 +102,7 @@ namespace snap {
 } // namespace snap
 #elif defined(__AVX__) && AVX_ENABLED
 #include <immintrin.h>
+#define AVX_ENABLED 1
 namespace snap {
   /// Defines memory alignment.
   static constexpr uint8_t ALIGNMENT = AL_32;
@@ -104,6 +112,7 @@ namespace snap {
 } // namespace snap
 #elif defined(__SSE4_2__)
 #include <nmmintrin.h>
+#define SSE_ENABLED 1
 namespace snap {
   /// Defines memory alignment.
   static constexpr uint8_t ALIGNMENT = AL_16;
@@ -113,6 +122,7 @@ namespace snap {
 } // namespace snap
 #elif defined(__SSE4_1__)
 #include <smmintrin.h>
+#define SSE_ENABLED 1
 namespace snap {
   /// Defines memory alignment.
   static constexpr uint8_t ALIGNMENT = AL_16;
@@ -122,6 +132,7 @@ namespace snap {
 } // namespace snap
 #elif defined(__SSSE3__)
 #include <tmmintrin.h>
+#define SSE_ENABLED 1
 namespace snap {
   /// Defines memory alignment.
   static constexpr uint8_t ALIGNMENT = AL_16;
@@ -131,6 +142,7 @@ namespace snap {
 } // namespace snap
 #elif defined(__SSE3__)
 #include <pmmintrin.h>
+#define SSE_ENABLED 1
 namespace snap {
   /// Defines memory alignment.
   static constexpr uint8_t ALIGNMENT = AL_16;
@@ -140,6 +152,7 @@ namespace snap {
 } // namespace snap
 #elif defined(__SSE2__) || defined(__x86_64__)
 #include <emmintrin.h>
+#define SSE_ENABLED 1
 namespace snap {
   /// Defines memory alignment.
   static constexpr uint8_t ALIGNMENT = AL_16;
@@ -149,6 +162,7 @@ namespace snap {
 } // namespace snap
 #elif defined(__SSE)
 #include <xmmintrin.h>
+#define SSE_ENABLED 1
 namespace snap {
   /// Defines memory alignment.
   static constexpr uint8_t ALIGNMENT = AL_16;
@@ -157,7 +171,7 @@ namespace snap {
   static constexpr uint8_t SIMD_TYPE = ST_SSE;
 } // namespace snap
 #else
- #error "No SIMD Instructions found! Snap++ can't function!"
+ #error "No SIMD Instructions found! Snap can't function!"
 #endif
 
 #endif // SNAP_CONFIG_SIMD_INSTRUCTION_DETECT_H

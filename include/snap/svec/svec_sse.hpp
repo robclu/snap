@@ -58,15 +58,16 @@ SNAP_ALIGN class svec<DType, 16> {
   svec() {}
 
   /// Constructor: Create vector from iternal intrinsic type.
-  /// \param x The intrinsic variable to use to initialize the internal vector.
+  /// \param[in] x The intrinsic variable to use to initialize the internal 
+  ///              vector.
   svec(const data_type& x);
 
   /// Constructor to broadcast a single 8 bit unsigned int. 
-  /// \param x The 8 bit unsigned int to broadcast.
+  /// \param[in] x The 8 bit unsigned int to broadcast.
   svec(uint8 x);
 
   /// Constructor to broadcast a single 8 bit signed int.
-  /// \param x The 8 bit signed int value to broadcast.
+  /// \param[in] x The 8 bit signed int value to broadcast.
   svec(int8 x); 
 
   // ---- Operators -------------------------------------------------------- //
@@ -76,9 +77,19 @@ SNAP_ALIGN class svec<DType, 16> {
   operator __m128i() const;
   
   /// Assignment operator: Allows the conversion from intrinsic types.
-  /// \param  x The intrinsic variable to use ti set the internal vector.
-  /// \return   A reference to the vector.
+  /// \param[in] x The intrinsic variable to use ti set the internal vector.
+  /// \return      A reference to the vector.
   svec_type& operator=(const data_type& x);
+
+  /// Access operator: Allows a specific unsigned element of the vector to be 
+  /// fetched. This does not check bounds due to performance implications.
+  /// \param[in] idx The index of the element to fetch.
+  uint8 operator[](uint8 idx) const;
+
+  /// Access operator: Allows a specific signed element of the vector to be 
+  /// fetched. This does not check bounds due to performance reasons.
+  /// \param[in] idx The index of the element to fetch.
+  sint8 operator[](uint8 idx) const;
 };
 
 // ---- Implementation ----------------------------------------------------- //
@@ -107,6 +118,16 @@ template <typename DT> SNAP_INLINE
 svec<DT, 16>& svec<DT, 16>::operator=(const svec<DT, 16>::data_type& x) {
   data = x;
   return *this;
+}
+
+template <typename DT> SNAP_INLINE
+uint8 svec<DT, 16>::operator[](uint8 idx) const {
+  return (data >> (idx << 0x03)) & 0xFF;
+}
+
+template <typename DT> SNAP_INLINE 
+int8 svec<DT, 16>::operator[](uint8 idx) const {
+  return (data >> (idx << 0x03)) & 0xFF;
 }
 
 } // namespace snap
