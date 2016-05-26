@@ -48,15 +48,6 @@ ELSE()
   SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -pedantic -Wall")
 ENDIF()
 
-# ---- Generate Assembly ---------------------------------------------------- #
-
-IF(GENERATE_ASM) 
-  SET(ASM_FLAGS_REL "-g -Wa,-ashl -fverbose-asm -masm=intel")
-  SET(ASM_FLAGS_DBG "-O3 -Wa,-ashl -fverbose-asm -masm=intel")
-  SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${ASM_FLAGS_REL}")
-  SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} ${ASM_FLAGS_DBG}"  )
-ENDIF()
-
 # ---- Num CPUS ------------------------------------------------------------- #
 
 set(PROC_COUNT 0)
@@ -181,6 +172,17 @@ IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
   SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -mfloat-abi=softfp")
   SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -mfpu=neon -Otime" )
   SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -vectorize"        )
+ENDIF()
+
+# ---- Asm Flags ------------------------------------------------------------ #
+
+IF(GENERATE_ASM) 
+  SET(ASM_FLAGS_REL "-g -Wa,-anhlds -fverbose-asm -masm=intel" CACHE 
+    STRING "Assembly release flags" FORCE)
+  SET(ASM_FLAGS_DBG "-O3 -Wa,-anhlds -fverbose-asm -masm=intel" CACHE 
+    STRING "Assembly debug flags" FORCE)
+  SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${ASM_FLAGS_REL}")
+  SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} ${ASM_FLAGS_DBG}"  )
 ENDIF()
 
 # ---- Set CXXFLAGS --------------------------------------------------------- #

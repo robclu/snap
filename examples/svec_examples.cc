@@ -30,13 +30,12 @@ class svec<T, 16> {
    enum { elements = 16 / sizeof(T), bytes = 16 };
    svec() {}
    svec(const data_type& x) { data = x; }
-   svev_type& operator=(const data_type& x) { data = x; return *this; }
+   svec_type& operator=(const data_type& x) { data = x; return *this; }
    operator __m128i() const { return data; }
 
    // Loads an array into the vector.
-   template <typename U>
-   svec_type& load(U const* u) 
-     data = _mm_load_si128(u);
+   svec_type& load(void const* u) {
+     data = _mm_loadu_si128((__m128i const*)u);
      return *this;
    }
    
@@ -47,8 +46,12 @@ class svec<T, 16> {
 
 int main() {
   svec<uint8_t, 16> byte_vec;
-  uint8_t data[16] = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+  __attribute__ ((aligned(16))) uint8_t data[16] = 
+    {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
 
   // Load data into the vector
   byte_vec.load(data);
+
+  // Load data into x.
+  auto x = _mm_load_si128(reinterpret_cast<__m128i const*>(data));
 }
