@@ -20,7 +20,8 @@ ENDIF(NOT CMAKE_BUILD_TYPE)
 
 # ---- Commandline Options -------------------------------------------------- #
 
-option(GENERATE_ASM "Generate assembly code" OFF)
+option(GENERATE_ASM "Generate assembly code"  OFF)
+option(ONLY_EXAMPLES "Generate only examples" OFF)
 
 # ---- Include directories -------------------------------------------------- #
 
@@ -28,7 +29,12 @@ include_directories(${Snap_SOURCE_DIR}/include)
 
 # ---- Subdirectories ------------------------------------------------------- #
 
-add_subdirectory(tests)
+IF(ONLY_EXAMPLES)
+  add_subdirectory(examples)
+ELSE(ONLY_EXAMPLES)
+  add_subdirectory(examples)
+  add_subdirectory(tests)
+ENDIF()
 
 # ---- Compiler Flags ------------------------------------------------------- #
 
@@ -45,8 +51,8 @@ ENDIF()
 # ---- Generate Assembly ---------------------------------------------------- #
 
 IF(GENERATE_ASM) 
-  SET(ASM_FLAGS_REL "-g -S -fverbose-asm -masm=intel")
-  SET(ASM_FLAGS_DBG "-O3 -S -fverbose-asm -masm=intel")
+  SET(ASM_FLAGS_REL "-g -Wa,-ashl -fverbose-asm -masm=intel")
+  SET(ASM_FLAGS_DBG "-O3 -Wa,-ashl -fverbose-asm -masm=intel")
   SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${ASM_FLAGS_REL}")
   SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} ${ASM_FLAGS_DBG}"  )
 ENDIF()
@@ -205,33 +211,37 @@ ENDIF()
 
 # ---- Tests ---------------------------------------------------------------- #
 
-enable_testing()
-
-add_test(NAME config_tests COMMAND config_tests)
-
-set(TESTS_STRING "config")
+IF(NOT ONLY_EXAMPLES)
+  enable_testing()
+  add_test(NAME config_tests COMMAND config_tests)
+  set(TESTS_STRING "config")
+ENDIF()
 
 # ---- Boost ---------------------------------------------------------------- #
 
-IF(WIN32)
-  SET(BOOST_ROOT C:/Program Files/boost)
-  SET(BOOST_LIBRARYDIR C:/Program Files/boost/lib)
-  SET(Boost_USE_STATIC_LIBS ON)
-ELSEIF(APPLE)
-  SET(BOOST_ROOT /opt/boost)
-  SET(BOOST_LIBRARYDIR /opt/boost/lib)
-  SET(Boost_USE_STATIC_LIBS OFF)
-ENDIF()
+IF(ONLY_EXAMPLES)
+  set(BOOST_VERSION_HR "No Boost in EXAMPLES_ONLY")
+ELSE(ONLY_EXAMPLES)
+  IF(WIN32)
+    SET(BOOST_ROOT C:/Program Files/boost)
+    SET(BOOST_LIBRARYDIR C:/Program Files/boost/lib)
+    SET(Boost_USE_STATIC_LIBS ON)
+  ELSEIF(APPLE)
+    SET(BOOST_ROOT /opt/boost)
+    SET(BOOST_LIBRARYDIR /opt/boost/lib)
+    SET(Boost_USE_STATIC_LIBS OFF)
+  ENDIF()
 
-find_package(Boost COMPONENTS 
-  system 
-  filesystem 
-  unit_test_framework 
-  REQUIRED
-)
+  find_package(Boost COMPONENTS 
+    system 
+    filesystem 
+    unit_test_framework 
+    REQUIRED
+  )
 
-set(BOOST_VERSION_HR "${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}")
-set(BOOST_VERSION_HR "${BOOST_VERSION_HR}.${Boost_SUBMINOR_VERSION}")
+  set(BOOST_VERSION_HR "${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}")
+  set(BOOST_VERSION_HR "${BOOST_VERSION_HR}.${Boost_SUBMINOR_VERSION}")
+ENDIF(ONLY_EXAMPLES)
 
 # ---- Print Configuration -------------------------------------------------- #
 

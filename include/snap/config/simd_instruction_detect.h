@@ -1,5 +1,3 @@
-//---- snap/config/simd_instruction_detect.h --------------- -*- C++ -*- ----//
-//
 //                                 Snap
 //                          
 //                      Copyright (c) 2016 Rob Clucas        
@@ -19,6 +17,11 @@
 
 #ifndef SNAP_CONFIG_SIMD_INSTRUCTION_DETECT_H
 #define SNAP_CONFIG_SIMD_INSTRUCTION_DETECT_H
+
+#include <stdint.h>
+
+// Testing 
+#define AVX_ENABLED 0
 
 namespace snap {
 
@@ -74,16 +77,16 @@ enum alignments : uint8_t {
   static constexpr uint8_t SIMD_TYPE = ST_NEON; 
 #endif
 
-#elif defined(__AVX2__)
+#elif defined(__AVX2__) && AVX_ENABLED
 #include <immintrin.h>
-
+  #warning "AVX ENABLED"
   /// Defines memory alignment.
   static constexpr uint8_t ALIGNMENT = AL_32;
 
   /// Defines highest level of SIMD instructions.
   static constexpr uint8_t SIMD_TYPE = ST_AVX2;
 
-#elif defined(__AVX__)
+#elif defined(__AVX__) && AVX_ENABLED
 #include <immintrin.h>
 
   /// Defines memory alignment.
@@ -94,6 +97,7 @@ enum alignments : uint8_t {
 
 #elif defined(__SSE4_2__)
 #include <nmmintrin.h>
+  #warning "SSE 42"
 
   /// Defines memory alignment.
   static constexpr uint8_t ALIGNMENT = AL_16;
