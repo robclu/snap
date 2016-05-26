@@ -21,6 +21,9 @@ link_directories(${Boost_LIBRARY_DIRS})
 
 ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)
 
+set(TEST_BIN_DIR ${Snap_SOURCE_DIR}/bin)
+set(ASM_DIR ${Snap_SOURCE_DIR}/asm)
+
 # ---- Make Test Function --------------------------------------------------- #
 
 function(MakeTest TestName TestFiles TestLibs TestBinDir)
@@ -36,17 +39,33 @@ function(MakeTest TestName TestFiles TestLibs TestBinDir)
     ${${TestBinDir}}/${${TestName}})
 endfunction()
 
+function(MakeAsm AsmName AsmInputFiles AsmLibs AsmDir)
+  add_executable(${${AsmName}} ${${AsmInputFiles}})
+
+  target_link_libraries(${${AsmName}} ${${AsmLibs}})
+
+  set_target_properties(${${AsmName}} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+    ${${AsmDir}})
+
+endfunction()
+
 # ---- Config Tests --------------------------------------------------------- #
 
-set(test_name config_tests)
-set(test_files config_tests.cc)
-set(test_libs 
+set(TEST_NAME config_tests)
+set(TEST_FILES config_tests.cc)
+set(TEST_LIBS
   ${Boost_FILESYSTEM_LIBRARY} 
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
-set(test_bin_dir ${Snap_SOURCE_DIR}/bin)
 
-MakeTest(test_name test_files test_libs test_bin_dir)
+MakeTest(TEST_NAME TEST_FILES TEST_LIBS TEST_BIN_DIR)
+
+IF(GENERATE_ASM)
+  set(ASM_NAME config_tests_asm)
+  set(ASM_FILES config_tests.cc)
+  set(ASM_LIBS ${TEST_LIBS})
+  MakeAsm(ASM_NAME ASM_FILES ASM_LIBS ASM_DIR)
+ENDIF()
 
 # --------------------------------------------------------------------------- #

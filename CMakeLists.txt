@@ -18,6 +18,10 @@ IF(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type not specified!")
 ENDIF(NOT CMAKE_BUILD_TYPE)
 
+# ---- Commandline Options -------------------------------------------------- #
+
+option(GENERATE_ASM "Generate assembly code" OFF)
+
 # ---- Include directories -------------------------------------------------- #
 
 include_directories(${Snap_SOURCE_DIR}/include)
@@ -38,38 +42,33 @@ ELSE()
   SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -pedantic -Wall")
 ENDIF()
 
-IF(CMAKE_BUILD_TYPE MATCHES Release)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_RELEASE}" 
-    CACHE STRING "CXX FLAGS" FORCE)
-ELSE()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}" 
-    CACHE STRING "CXX FLAGS" FORCE)
+# ---- Generate Assembly ---------------------------------------------------- #
+
+IF(GENERATE_ASM) 
+  SET(ASM_FLAGS_REL "-g -S -fverbose-asm -masm=intel")
+  SET(ASM_FLAGS_DBG "-O3 -S -fverbose-asm -masm=intel")
+  SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${ASM_FLAGS_REL}")
+  SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} ${ASM_FLAGS_DBG}"  )
 ENDIF()
 
 # ---- Num CPUS ------------------------------------------------------------- #
 
-include(ProcessorCount)
-ProcessorCount(PROC_COUNT)
+set(PROC_COUNT 0)
 
 IF(PROC_COUNT EQUAL 0)
-  set(PROC_COUNT 0)
 
   # Linux:
   set(CPUINFO_FILE "/proc/cpuinfo")
   IF(EXISTS "${CPUINFO_FILE}")
-    file(STRINGS "${CPUINFO_FILE}" procs REGEX "^processor.: [0-9]+$")
-    list(LENGTH procs PROC_COUNT)
+    FILE(STRINGS "${CPUINFO_FILE}" procs REGEX "^processor.: [0-9]+$")
+    LIST(LENGTH procs PROC_COUNT)
   ENDIF()
 
   # Mac:
   IF(APPLE)
-    find_program(CMD_SYS_CTL "sysctl -a | grep machdep.cpu")
-    IF(CMD_SYS_CTL)
-      execute_process(COMMAND ${CMD_SYS_PRO} OUTPUT_VARIABLE INFO)
-      message("CPUINFO: ${INFO}")
-      string(REGEX REPLACE "^.*Total Number Of Cores: ([0-9]+).*$" "\\1"
-        PROC_COUNT "${INFO}")
-    ENDIF()
+    EXEC_PROGRAM(sysctl ARGS "-a | grep machdep.cpu" OUTPUT_VARIABLE INFO)
+    STRING(REGEX MATCH "core_count: [0-9]+" PROC_STRING ${INFO})
+    STRING(REGEX MATCH "[0-9]+" PROC_COUNT ${PROC_STRING})
   ENDIF()
 
   # Windows:
@@ -83,6 +82,9 @@ IF(PROC_COUNT)
 ENDIF()
 
 # ---- Vectorized Intrinsics ------------------------------------------------ #
+
+set(ENABLE_AVX FALSE)
+set(ENABLE_SSE TRUE )
 
 # APPLE INTEL INTRINSICS:
 IF(APPLE)
@@ -108,8 +110,6 @@ IF(APPLE)
 
   STRING(REGEX MATCH "AVX2.0" AVX2_THERE ${CPUINFO})
   STRING(COMPARE EQUAL "AVX2.0" "${AVX2_THERE}" AVX2_TRUE)
-
-  message("SSE: ${SSE42_TRUE}, AVX ${AVX_TRUE}")
 ENDIF(APPLE)
 
 # LINUX INTEL INTRINCICS:
@@ -138,36 +138,34 @@ IF(UNIX AND NOT APPLE)
 
   STRING(REGEX MATCH "avx2" AVX2_THERE ${CPUINFO})
   STRING(COMPARE EQUAL "avx2" "${AVX2_THERE}" AVX2_TRUE)
-ENDIF(UNIX)
+ENDIF(UNIX AND NOT APPLE)
 
-  message("SSE: ${SSE42_TRUE}, AVX ${AVX_TRUE}")
-
-IF(AVX2_TRUE)
+IF(AVX2_TRUE AND ENABLE_AVX) 
   SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mavx2")
   SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -mavx2"  )
-ELSEIF(AVX_TRUE)
+ELSEIF(AVX_TRUE AND ENABLE_AVX)
   SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mavx")
   SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -mavx"  )
-ELSEIF(SSE42_TRUE)
+ELSEIF(SSE42_TRUE AND ENABLE_SSE)
   SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -msse4.2")
   SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -msse4.2"  )
-ELSEIF(SSE41_TRUE)
+ELSEIF(SSE41_TRUE AND ENABLE_SSE)
   SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -msse4.1")
   SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -msse4.1"  )
-ELSEIF(SSSE3_TRUE)
+ELSEIF(SSSE3_TRUE AND ENABLE_SSE)
   SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -mssse3")
   SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -mssse3"  )
-ELSEIF(SSE3_TRUE)
+ELSEIF(SSE3_TRUE AND ENABLE_SSE)
   SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -msse3")
   SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -msse3"  )
-ELSEIF(SSE2_TRUE)
+ELSEIF(SSE2_TRUE AND ENABLE_SSE)
   SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -msse2")
   SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -msse2")
-ELSEIF(SSE_TRUE)
+ELSEIF(SSE_TRUE AND ENABLE_SSE)
   SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -msse")
   SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -msse"  )
-ELSE(AVX2_TRUE)
-ENDIF(AVX2_TRUE)
+ELSE(AVX2_TRUE AND ENABLE_AVX)
+ENDIF(AVX2_TRUE AND ENABLE_AVX)
 
 # ARM
 IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
@@ -177,6 +175,32 @@ IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
   SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -mfloat-abi=softfp")
   SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -mfpu=neon -Otime" )
   SET(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -vectorize"        )
+ENDIF()
+
+# ---- Set CXXFLAGS --------------------------------------------------------- #
+
+IF(CMAKE_BUILD_TYPE MATCHES Release)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_RELEASE}" 
+    CACHE STRING "CXX FLAGS" FORCE)
+ELSE()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_DEBUG}" 
+    CACHE STRING "CXX FLAGS" FORCE)
+ENDIF()
+
+# ---- Num CPUS ------------------------------------------------------------- #
+
+set(PROC_COUNT 0)
+#include(ProcessorCount)
+#ProcessorCount(PROC_COUNT)
+
+IF(PROC_COUNT EQUAL 0)
+
+  # Linux:
+  set(CPUINFO_FILE "/proc/cpuinfo")
+  IF(EXISTS "${CPUINFO_FILE}")
+    FILE(STRINGS "${CPUINFO_FILE}" procs REGEX "^processor.: [0-9]+$")
+    LIST(LENGTH procs PROC_COUNT)
+  ENDIF()
 ENDIF()
 
 # ---- Tests ---------------------------------------------------------------- #
@@ -217,6 +241,9 @@ message("| BUILD TYPE              : ${CMAKE_BUILD_TYPE}"                     )
 message("| CMAKE_CXX_FLAGS_RELEASE : ${CMAKE_CXX_FLAGS_RELEASE}"              )
 message("| CMAKE_CXX_FLAGS_DEBUG   : ${CMAKE_CXX_FLAGS_DEBUG}"                )
 message("| CMAKE_CXX_FLAGS         : ${CMAKE_CXX_FLAGS}"                      )
+message("| AVX ENABLED             : ${ENABLE_AVX}"                           )
+message("| SSE ENABLED             : ${ENABLE_SSE}"                           )
+message("| GENERATE ASSEMBLY       : ${GENERATE_ASM}"                         )
 message("| NUMBER OF PROCESSORS    : ${PROC_COUNT}"                           )
 message("| BOOST VERSION           : ${BOOST_VERSION_HR}"                     )
 message("| TESTS                   : ${TESTS_STRING}"                         )
