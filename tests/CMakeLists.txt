@@ -68,4 +68,23 @@ IF(GENERATE_ASM)
   MakeAsm(ASM_NAME ASM_FILES ASM_LIBS ASM_DIR)
 ENDIF()
 
+# ---- Svec Tests ----------------------------------------------------------- #
+
+set(TEST_NAME svec_tests)
+set(TEST_FILES svec_tests.cc)
+set(TEST_LIBS
+  ${Boost_FILESYSTEM_LIBRARY} 
+  ${Boost_SYSTEM_LIBRARY}
+  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+)
+
+MakeTest(TEST_NAME TEST_FILES TEST_LIBS TEST_BIN_DIR)
+
+IF(GENERATE_ASM)
+  set(ASM_NAME snap_tests_asm)
+  set(ASM_FILES snap_tests.cc)
+  set(ASM_LIBS ${TEST_LIBS})
+  MakeAsm(ASM_NAME ASM_FILES ASM_LIBS ASM_DIR)
+ENDIF()
+
 # --------------------------------------------------------------------------- #

@@ -21,11 +21,8 @@
 #include <stdint.h>
 
 // Specifies the vector instruction set enabled.
-#define NEON_ENABLED   0
-#define NEON64_ENABLED 0
-#define AVX2_ENABLED   0
-#define AVX_ENABLED    0
-#define SSE_ENABLED    0
+#define AVX2_ENABLED 0
+#define AVX_ENABLED  0
 
 /// Defines alignment for MSVC compiler.
 #if defined(_MSC_VER) && defined(_MSC_FULL_VER)
@@ -173,5 +170,7 @@ namespace snap {
 #else
  #error "No SIMD Instructions found! Snap can't function!"
 #endif
+
+#define SNAP_ALIGNED SNAP_ALIGN(snap::ALIGNMENT)
 
 #endif // SNAP_CONFIG_SIMD_INSTRUCTION_DETECT_H

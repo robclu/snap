@@ -17,6 +17,8 @@
 #ifndef SNAP_TYPES_TYPES_SSE_H
 #define SNAP_TYPES_TYPES_SSE_H
 
+#include <stdint.h>
+
 namespace snap {
 
 using uint8   = uint8_t ;   //!< Unsigned 8 bit integer.
@@ -27,8 +29,8 @@ using uint32  = uint32_t;   //!< Unsigned 32 bit integer.
 using sint32  = int32_t ;   //!< Signed 32 bit integer.
 using uint64  = uint64_t;   //!< Unsigned 64 bit integer.
 using sint64  = int64_t ;   //!< Signed 64 bit integer.
-using sfloat  = float   ;   //!< Single precision floating point number.
-using sdouble = double  ;   //!< Double precision floating point number.
+using sfloat  = float   ;   //!< Single precision number.
+using sdouble = double  ;   //!< Double precision number.
 
 } // namespace snap
 

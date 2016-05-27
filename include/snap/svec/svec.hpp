@@ -20,6 +20,8 @@
 #ifndef SNAP_SVEC_SVEC_HPP
 #define SNAP_SVEC_SVEC_HPP
 
+#include "snap/config/simd_instruction_detect.h"
+
 #ifdef NEON_ENABLED
 
 #ifdef NEON64_ENABLED
@@ -27,12 +29,12 @@
 #endif // NEON64_ENABLED
 
 #elif SSE_ENABLED 
-#include <svec_sse.hpp>
+#include "svec_sse.hpp"
 
 namespace snap {
 
-using svec16x8u = svec<uint8, 16>; //!< A 16 element vec of 8-bit uints.
-using svec16x8s = svec<sint8, 16>: //!< A 16 element vec of 8-bit sints.
+using svec16x8u = svec<uint8_t, 16>; //!< A 16 element vec of 8-bit uints.
+using svec16x8s = svec<int8_t , 16>; //!< A 16 element vec of 8-bit sints.
 
 } // namespace snap
 

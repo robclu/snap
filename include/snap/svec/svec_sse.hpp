@@ -31,7 +31,6 @@
 
 #include "svec_general.hpp"
 #include "snap/config/simd_instruction_detect.h"
-#include "snap/types/types_sse.h"
 
 namespace snap {
 
@@ -41,10 +40,11 @@ namespace snap {
 /// \tparam DType The type of the data elements.
 /// \tparam Width The number of elements in the vector.
 template <typename DType>
-SNAP_ALIGN class svec<DType, 16> {
+class svec<DType, 16> {
  public:
-  using data_type = __mm128i;           //!< Alias for the vector data type.
-  using svec_type = svec<Dtype, Width>; //!< Alias for the type of vector.
+  using intern_dtype = DType;              //!< Alias for internal data type.
+  using data_type    = __m128i;            //!< Alias for the vector data type.
+  using svec_type    = svec<DType, 16>;    //!< Alias for the type of vector.
 
   /// Width of the vector.
   static constexpr uint8_t width = 16;
@@ -62,13 +62,9 @@ SNAP_ALIGN class svec<DType, 16> {
   ///              vector.
   svec(const data_type& x);
 
-  /// Constructor to broadcast a single 8 bit unsigned int. 
-  /// \param[in] x The 8 bit unsigned int to broadcast.
-  svec(uint8 x);
-
-  /// Constructor to broadcast a single 8 bit signed int.
-  /// \param[in] x The 8 bit signed int value to broadcast.
-  svec(int8 x); 
+  /// Constructor: Broadcasts a single 8 bit int of type DType. 
+  /// \param[in] x The 8 bit int to broadcast.
+  svec(intern_dtype x);
 
   // ---- Operators -------------------------------------------------------- //
   
@@ -81,53 +77,64 @@ SNAP_ALIGN class svec<DType, 16> {
   /// \return      A reference to the vector.
   svec_type& operator=(const data_type& x);
 
-  /// Access operator: Allows a specific unsigned element of the vector to be 
-  /// fetched. This does not check bounds due to performance implications.
+  /// Access operator: Allows a specific element of the vector to be fetched.
+  /// This does not check bounds due to performance implications.
   /// \param[in] idx The index of the element to fetch.
-  uint8 operator[](uint8 idx) const;
+  intern_dtype operator[](uint8_t idx) const;
 
-  /// Access operator: Allows a specific signed element of the vector to be 
-  /// fetched. This does not check bounds due to performance reasons.
-  /// \param[in] idx The index of the element to fetch.
-  sint8 operator[](uint8 idx) const;
-};
+  // ---- General Operations ----------------------------------------------- //
+
+  /// Store operation: Allows the vector to be stored in contiguous memory. The 
+  /// memory needs to be aligned on a 16 byte boundary.
+  /// \param[in] p A pointer to the start of the contiguous aligned memory.
+  void store(void* p) const;
+
+  /// Store operation: Allows the vector to be stored in contiguous memory. The
+  /// memory does not need to be aligned on a 16 byte boundary.
+  /// \param[in] p A pointer to the start of the contiguous aligned or
+  ///              unaligned memory.
+  void storeu(void* p) const;
+
+} SNAP_ALIGNED;
 
 // ---- Implementation ----------------------------------------------------- //
 
 template <typename DT> SNAP_INLINE
-svec<DT, 16>::svec(const svec<DT, 16>::data_type& x) {
+svec<DT, 16>::svec(const data_type& x) {
   data = x;
 }
 
 template <typename DT> SNAP_INLINE 
-svec<DT, 16>::svec(int8 x) {
+svec<DT, 16>::svec(DT x) {
   data = _mm_set1_epi8(x);
 }
 
 template <typename DT> SNAP_INLINE
-svec<DT, 16>::svec(uint8 x) {
-  data = _mm_set1_epi8(x);
-}
-
-template <typename DT> SNAP_INLINE
-operator svec<DT, 16>::__m128i() const {
+svec<DT, 16>::operator __m128i() const {
   return data;
 }
 
 template <typename DT> SNAP_INLINE 
-svec<DT, 16>& svec<DT, 16>::operator=(const svec<DT, 16>::data_type& x) {
+svec<DT, 16>& svec<DT, 16>::operator=(const data_type& x) {
   data = x;
   return *this;
 }
 
 template <typename DT> SNAP_INLINE
-uint8 svec<DT, 16>::operator[](uint8 idx) const {
-  return (data >> (idx << 0x03)) & 0xFF;
+DT svec<DT, 16>::operator[](uint8_t idx) const {
+  SNAP_ALIGN(16) DT data_array[16];
+  store(data_array);
+  return data_array[idx];
 }
 
 template <typename DT> SNAP_INLINE 
-int8 svec<DT, 16>::operator[](uint8 idx) const {
-  return (data >> (idx << 0x03)) & 0xFF;
+void svec<DT, 16>::store(void* p) const {
+  _mm_store_si128(reinterpret_cast<data_type*>(p), data);
+}
+
+template <typename DT> SNAP_INLINE 
+void svec<DT, 16>::storeu(void* p) const {
+  _mm_storeu_si128(reinterpret_cast<data_type*>(p), data);
 }
 
 } // namespace snap
