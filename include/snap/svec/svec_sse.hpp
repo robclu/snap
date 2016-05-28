@@ -62,9 +62,14 @@ class svec<DType, 16> {
   ///              vector.
   svec(const data_type& x);
 
-  /// Constructor: Broadcasts a single 8 bit int of type DType. 
+  /// Constructor: Broadcasts a single 8 bit int of type DType into the vector. 
   /// \param[in] x The 8 bit int to broadcast.
   svec(intern_dtype x);
+
+  /// Constructor: Sets a pointer to an array of elements as vector elements.
+  /// \param[in] p A pointer to the start of the elements to load into to
+  ///              vector.
+  svec(intern_dtype* p);
 
   // ---- Operators -------------------------------------------------------- //
   
@@ -83,6 +88,20 @@ class svec<DType, 16> {
   intern_dtype operator[](uint8_t idx) const;
 
   // ---- General Operations ----------------------------------------------- //
+ 
+  /// Load operation: Allows a pointer to contiguous, aligned or unaligned 
+  /// memory to be loaded as a vector data type. This can be slower than loada
+  /// in some cases.
+  /// \param[in] p A pointer to the start of the contiguous aligned/unaligned 
+  ///              memory to load as a vector of elements.
+  void load(void* p);
+
+  /// Load operation: Allows a pointer to contiguous, aligned memory to be
+  /// loaded as a vector data type. This can be faster than load, but must only 
+  /// be used when the memory is definitely 16-byte aligned.
+  /// \param[in] p A pointer to the start of the contiguous aligned memory to 
+  ///              load as a vector of elements.
+  void loada(void* p);
 
   /// Store operation: Allows the vector to be stored in contiguous memory. The 
   /// memory needs to be aligned on a 16 byte boundary.
@@ -109,6 +128,11 @@ svec<DT, 16>::svec(DT x) {
   data = _mm_set1_epi8(x);
 }
 
+template <typename DT> SNAP_INLINE 
+svec<DT, 16>::svec(DT* p) {
+  load(p);
+}
+
 template <typename DT> SNAP_INLINE
 svec<DT, 16>::operator __m128i() const {
   return data;
@@ -125,6 +149,16 @@ DT svec<DT, 16>::operator[](uint8_t idx) const {
   SNAP_ALIGN(16) DT data_array[16];
   store(data_array);
   return data_array[idx];
+}
+
+template <typename DT> SNAP_INLINE
+void svec<DT, 16>::load(void* p) {
+  data = _mm_loadu_si128(reinterpret_cast<data_type const*>(p));
+}
+
+template <typename DT> SNAP_INLINE 
+void svec<DT, 16>::loada(void* p) {
+  data = _mm_load_si128(reinterpret_cast<data_type const *>(p));
 }
 
 template <typename DT> SNAP_INLINE 
