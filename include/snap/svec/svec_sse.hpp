@@ -48,7 +48,7 @@ class svec<DType, 16> {
 
   /// Width of the vector.
   static constexpr uint8_t width = 16;
- protected:
+ private:
   data_type data;                       //!< Data for the vector.
 
  public:
@@ -114,6 +114,12 @@ class svec<DType, 16> {
   ///              unaligned memory.
   void storeu(void* p) const;
 
+  /// Set operation: Sets a specific element of the vector to the specified
+  /// value.
+  /// \param[in] idx The index of the element to set the value of.
+  /// \param[in] val The value to set the element to.
+  void set(uint8_t idx, intern_dtype val);
+
 } SNAP_ALIGNED;
 
 // ---- Implementation ----------------------------------------------------- //
@@ -158,7 +164,7 @@ void svec<DT, 16>::load(void* p) {
 
 template <typename DT> SNAP_INLINE 
 void svec<DT, 16>::loada(void* p) {
-  data = _mm_load_si128(reinterpret_cast<data_type const *>(p));
+  data = _mm_load_si128(reinterpret_cast<data_type const*>(p));
 }
 
 template <typename DT> SNAP_INLINE 
@@ -169,6 +175,14 @@ void svec<DT, 16>::store(void* p) const {
 template <typename DT> SNAP_INLINE 
 void svec<DT, 16>::storeu(void* p) const {
   _mm_storeu_si128(reinterpret_cast<data_type*>(p), data);
+}
+
+template <typename DT> SNAP_INLINE 
+void svec<DT, 16>::set(uint8_t idx, DT val) {
+  SNAP_ALIGN(16) DT tmp[16];
+  _mm_store_si128(reinterpret_cast<data_type*>(tmp), data);
+  tmp[idx] = val;
+  data = _mm_load_si128(reinterpret_cast<data_type const*>(tmp));
 }
 
 } // namespace snap
