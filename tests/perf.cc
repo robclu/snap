@@ -1,8 +1,10 @@
 #include <vector>
 #include "timer.hpp"
+#include "../include/snap/util/optimization.hpp"
 
 using namespace chaos;
 
+/*
 template <uint8_t Start, uint8_t End, typename L, typename...As>
 static inline constexpr void unroll(L l, As&&... as, 
 typename std::enable_if<Start != End, void*>::type = nullptr) {
@@ -17,7 +19,7 @@ typename std::enable_if<Start == End, void*>::type = nullptr) {
 //  unroll<Start + 1, End>(l, as...);
 }
 
-
+*/
 
 template <typename T>
 static inline void arr_basic(T& a) {
@@ -40,10 +42,12 @@ static inline void vec_basic(T& v) {
 
 template <typename T>
 static inline void unroll_basic(T& u) {
+  constexpr snap::unroll_const uu(0);
   for (size_t i = 0; i < u.size() - 7; i += 8) {  
-    unroll<0, 7>([&u, i] (const int offset) {
+    
+    snap::util::unroll<0, 7>([&u, i] (const snap::unroll_const offset) {
       u[i + offset] = u[i + offset] * (i + offset) + u[i + offset];
-    });
+    }, uu);
   }
 };
 
