@@ -18,11 +18,16 @@
 #ifndef SNAP_SMAT_SMAT_SSE_HPP
 #define SNAP_SMAT_SMAT_SSE_HPP
 
+#include "snap/config/simd_instruction_detect.h"
+
 namespace snap {
 
 /// Defines a matrix class for which SIMD operations can be used to improve
-/// processing performance.
+/// processing performance. At the moment, this copies the mat 16 bytes at a
+/// time into a vector so the the memory is correctly aligned.
 class smat {
+ public:
+  using vec_type = std::vector<vec16x8u>;
  private:
   uint8_t* data;  //!< Pointer to the raw matrix data. 
 
