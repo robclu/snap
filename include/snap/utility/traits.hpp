@@ -52,6 +52,10 @@ struct function_traits<ReturnType(ClassType::*)(A, Args...) const> {
   };
 };
 
+// Specialization for a pointer to a member function with no arguments.
+// \tparam ClassType  The type of the class the member function is part of.
+// \tparam ReturnType The return type of the function.
+// \tparam Args...    The argument types for the function.
 template <typename ClassType, typename ReturnType>
 struct function_traits<ReturnType(ClassType::*)() const> {
   /// Returns the number of arguments for the function.
@@ -60,6 +64,8 @@ struct function_traits<ReturnType(ClassType::*)() const> {
   /// Defines the return type of the function.
   using return_type = ReturnType;
 
+  /// Defines a struct which specifies that for any index the parameter type is
+  /// void when the function has no arguments.
   template <size_t Idx>
   struct arg {
     using type = void;
