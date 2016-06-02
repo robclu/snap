@@ -19,6 +19,7 @@
 #include <boost/test/unit_test.hpp>
 #include "snap/utility/utility.hpp"
 #include <array>
+#include <iostream>
 
 // NOTE: The utility.hpp header simply provides all of the specific utilities
 // which are tested here. Each of the test suites tested here have their own
@@ -35,8 +36,9 @@ struct performance_fixture {
 BOOST_FIXTURE_TEST_SUITE(snap_utility_performance_suite, performance_fixture)
 
 BOOST_AUTO_TEST_CASE(can_unroll_and_access_unroll_index) {
-  // Set each element in the array to its index value, but unroll it.
   const auto end = elements.size() - UNROLL_SIZE + 1;
+
+  // Set each element in the array to its index value, but unroll it.
   for (size_t i = 0; i < end; i += UNROLL_SIZE) {
     util::perf::unroll<0, UNROLL_SIZE - 1>(
       [&] (const unroll_index uidx) {
@@ -49,19 +51,37 @@ BOOST_AUTO_TEST_CASE(can_unroll_and_access_unroll_index) {
     BOOST_CHECK(elements[i] == i);
 } 
 
-/*
+/* This feature is not currently working!
+BOOST_AUTO_TEST_CASE(can_provide_parameters_for_unroll) {
+  const auto end    = elements.size() - UNROLL_SIZE + 1;
+  const int  offset = 12;
+
+  // Set each element to it's index plus the offset valud.
+  for (size_t i = 0; i < end; i += UNROLL_SIZE) {
+    util::perf::unroll<0, UNROLL_SIZE - 1>(
+      [&] (const unroll_index uidx, const int offset_const, int a) {
+        elements[i + uidx] = i + uidx + offset_const;
+      }, 
+      offset // This is passed to the lambda function as offset_const
+    );
+  }
+
+  for (size_t i = 0; i < elements.size(); ++i) 
+    BOOST_CHECK(elements[i] == i + offset);
+}
+*/
+
 BOOST_AUTO_TEST_CASE(can_unroll_without_unroll_index_access) {
   size_t           x   = 0;
   constexpr size_t END = 10;
-  for (size_t i = 0; i < END; i += UNROLL_SIZE) {
+  for (size_t i = 0; i < END; ++i) {
     util::perf::unroll<0, UNROLL_SIZE - 1>([&] () {
         x += 1;
       }
     );
   }
 
-  BOOST_CHECK(x == (END * UNROLL_SIZE))
+  BOOST_CHECK(x == (END * UNROLL_SIZE));
 }
-*/
 
 BOOST_AUTO_TEST_SUITE_END()  

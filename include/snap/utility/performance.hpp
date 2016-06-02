@@ -105,7 +105,7 @@ struct unroll_enable {
 ///   some_array[3] = 3 * 3;
 ///
 /// The values of any additional parameters for the lambda must be provided
-/// after the lambda. For example, the following:
+/// after the lambda. For example, the following (doesn't currently work):
 ///
 /// snap::util::perf::unroll<0, 3>( 
 ///   [&some_array] (snap::unroll_index u, int init_offset) {
@@ -121,21 +121,40 @@ struct unroll_enable {
 ///   some_array[1000 + 2] = 1000 + 2;
 ///   some_array[1000 + 3] = 1000 + 3;
 ///
+/// However, the same functionality can be achieved by declaring the variable
+/// outside the lambda and capturing it:
+///
+/// const int init_offset = 1000;
+///
+/// snap::util::perf::unroll<0, 3>( 
+///   [&some_array, init_offset] (snap::unroll_index u) {
+///     some_array[init_offset + u] = init_offset + u;
+///   }
+/// );
+///
+/// is equivalent to:
+///
+///   some_array[1000 + 0] = 1000 + 0;
+///   some_array[1000 + 1] = 1000 + 1;
+///   some_array[1000 + 2] = 1000 + 2;
+///   some_array[1000 + 3] = 1000 + 3;
+/// 
+///
 /// Lastly, if unroll index will not be used then simply omit the (const
 /// snap::unroll_index) or (snap::unroll_index) parameter for the lambda, and
 /// specify other arguments after the lambda as in the example above.
+///
 /// \tparam Start  The start valud of the unroll_index.
 /// \tparam End    The end valud of the unroll index (inclusive).
 /// \tparam Lambda The type of the lambda function.
 /// \tparam Args   The type of the arguments for the lambda functions.
 template <uint8_t Start, uint8_t End, typename Lambda, typename... Args>
 static inline constexpr 
-void unroll(Lambda l, Args&&... args, typename std::enable_if<
+void unroll(Lambda l, Args&&... args, typename std::enable_if_t<
     detail::unroll_enable<
       typename traits::function_traits<decltype(l)>::template arg<0>::type,  
       Start, End
-    >::end_span_with_unroll_idx(), 
-    void*>::type = nullptr) {
+    >::end_span_with_unroll_idx(), void*> = nullptr) {
   l(unroll_index(Start), std::forward<Args&&>(args)...);
 }
 
@@ -143,26 +162,24 @@ void unroll(Lambda l, Args&&... args, typename std::enable_if<
 // lambda function is of type unroll_index.
 template <uint8_t Start, uint8_t End, typename Lambda, typename... Args>
 static inline constexpr 
-void unroll(Lambda l, Args&&... args, typename std::enable_if<
+void unroll(Lambda l, Args&&... args, typename std::enable_if_t<
     detail::unroll_enable<
       typename traits::function_traits<decltype(l)>::template arg<0>::type,  
       Start, End
-    >::valid_span_with_unroll_idx(), 
-    void*>::type = nullptr) {
-  l(unroll_index(Start), std::forward<Args&&>(args)...);
-  unroll<Start + 1, End>(l, std::forward<Args&&>(args)...);
+    >::valid_span_with_unroll_idx(), void*> = nullptr) {
+  l(unroll_index(Start), std::forward<Args>(args)...);
+  unroll<Start + 1, End>(l, std::forward<Args>(args)...);
 }
 
 // This case is enabled when the span is the end of the span and the first
 // argument of the lambda is not of unroll_index type.
 template <uint8_t Start, uint8_t End, typename Lambda, typename... Args>
 static inline constexpr 
-void unroll(Lambda l, Args&&... args, typename std::enable_if<
+void unroll(Lambda l, Args&&... args, typename std::enable_if_t<
     detail::unroll_enable<
       typename traits::function_traits<decltype(l)>::template arg<0>::type,  
       Start, End
-    >::end_span_wo_unroll_idx(), 
-    void*>::type = nullptr) {
+    >::end_span_wo_unroll_idx(), void*> = nullptr) {
   l(std::forward<Args&&>(args)...);
 }
 
@@ -170,15 +187,14 @@ void unroll(Lambda l, Args&&... args, typename std::enable_if<
 // the lamda is not of unroll_index type.
 template <uint8_t Start, uint8_t End, typename Lambda, typename... Args>
 static inline constexpr 
-void unroll(Lambda l, Args&&... args, typename std::enable_if<
+void unroll(Lambda l, Args&&... args, typename std::enable_if_t<
     detail::unroll_enable<
       typename traits::function_traits<decltype(l)>::template arg<0>::type,  
       Start, End
-    >::valid_span_wo_unroll_idx(), 
-    void*>::type = nullptr) {
+    >::valid_span_wo_unroll_idx(), void*> = nullptr) {
   l(std::forward<Args&&>(args)...);
   unroll<Start + 1, End> (l, std::forward<Args&&>(args)...);
- }
+}
 
 } // namespace perf
 } // namespace util

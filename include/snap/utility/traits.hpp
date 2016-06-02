@@ -33,21 +33,36 @@ struct function_traits : public function_traits<decltype(&T::operator())> {};
 // \tparam ClassType  The type of the class the member function is part of.
 // \tparam ReturnType The return type of the function.
 // \tparam Args...    The argument types for the function.
-template <typename ClassType, typename ReturnType, typename... Args>
-struct function_traits<ReturnType(ClassType::*)(Args...) const> {
+template <typename ClassType, typename ReturnType, typename A, typename... Args>
+struct function_traits<ReturnType(ClassType::*)(A, Args...) const> {
   /// Returns the number of arguments for the function.
-  static constexpr size_t arity = sizeof...(Args);
+  static constexpr size_t arity = sizeof...(Args) + 1;
 
   /// Defines the return type of the function.
   using return_type = ReturnType;
 
   /// Defines a struct which allows the type of the argument at a specific
   /// index to be determined.
-  /// \tparam Idx The index of the argument to get the type of.
+  /// \tparam Idx     The index of the argument to get the type of.
+  /// \tparam Enable  If the struct is enabled.
   template <size_t Idx>
   struct arg {
     /// Defines the type of the argument in position Idx.
-    using type = typename std::tuple_element<Idx, std::tuple<Args...>>::type;
+    using type = typename std::tuple_element<Idx, std::tuple<A, Args...>>::type;
+  };
+};
+
+template <typename ClassType, typename ReturnType>
+struct function_traits<ReturnType(ClassType::*)() const> {
+  /// Returns the number of arguments for the function.
+  static constexpr size_t arity = 0;
+
+  /// Defines the return type of the function.
+  using return_type = ReturnType;
+
+  template <size_t Idx>
+  struct arg {
+    using type = void;
   };
 };
 
