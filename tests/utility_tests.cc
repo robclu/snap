@@ -51,7 +51,7 @@ BOOST_AUTO_TEST_CASE(can_unroll_and_access_unroll_index) {
     BOOST_CHECK(elements[i] == i);
 } 
 
-/* This feature is not currently working!
+// This feature is not currently working!
 BOOST_AUTO_TEST_CASE(can_provide_parameters_for_unroll) {
   const auto end    = elements.size() - UNROLL_SIZE + 1;
   const int  offset = 12;
@@ -63,13 +63,14 @@ BOOST_AUTO_TEST_CASE(can_provide_parameters_for_unroll) {
         elements[i + uidx] = i + uidx + offset_const;
       }, 
       offset // This is passed to the lambda function as offset_const
+      , offset
     );
   }
 
   for (size_t i = 0; i < elements.size(); ++i) 
     BOOST_CHECK(elements[i] == i + offset);
 }
-*/
+
 
 BOOST_AUTO_TEST_CASE(can_unroll_without_unroll_index_access) {
   size_t           x   = 0;
