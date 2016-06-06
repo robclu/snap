@@ -51,26 +51,26 @@ BOOST_AUTO_TEST_CASE(can_unroll_and_access_unroll_index) {
     BOOST_CHECK(elements[i] == i);
 } 
 
-// This feature is not currently working!
+
 BOOST_AUTO_TEST_CASE(can_provide_parameters_for_unroll) {
-  const auto end    = elements.size() - UNROLL_SIZE + 1;
-  const int  offset = 12;
+  const auto    end    = elements.size() - UNROLL_SIZE + 1;
+  const int     offset_a = 12;
+  const int16_t offset_b = 123;
 
   // Set each element to it's index plus the offset valud.
   for (size_t i = 0; i < end; i += UNROLL_SIZE) {
     util::perf::unroll<0, UNROLL_SIZE - 1>(
-      [&] (const unroll_index uidx, const int offset_const, int a) {
-        elements[i + uidx] = i + uidx + offset_const;
+      [&] (const unroll_index uidx, const int off_a, const int16_t off_b) {
+        elements[i + uidx] = i + uidx + off_a + off_b;
       }, 
-      offset // This is passed to the lambda function as offset_const
-      , offset
+      offset_a,       // Value of off_a in unrolled lambda.
+      offset_b        // Value of off_b in unrolled lambda
     );
   }
 
   for (size_t i = 0; i < elements.size(); ++i) 
-    BOOST_CHECK(elements[i] == i + offset);
+    BOOST_CHECK(elements[i] == i + offset_a + offset_b);
 }
-
 
 BOOST_AUTO_TEST_CASE(can_unroll_without_unroll_index_access) {
   size_t           x   = 0;
