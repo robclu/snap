@@ -19,7 +19,21 @@
 #define SNAP_SMAT_SMAT_GENERAL_HPP
 
 namespace snap {
+namespace mat  {
 
+/// Defines the possible formats for SIMD matrix types.
+enum format : uint8_t {
+  FMT_GREY_8  = 0,
+  FMT_BGR_24  = 1, 
+  FMT_BGRA_32 = 2
+};
+
+} // namespace mat
+
+/// Defines a metaclass to get a typename for a specific format.
+/// \tparam Format The format to get the relevant typename of.
+template <uint8_t Format>
+struct get_format_type;
 
 } // namespace snap
 

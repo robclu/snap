@@ -54,6 +54,8 @@ namespace snap {
 template <typename Type, uint8_t Width>
 class svec;
 
+/*
+
 /// Provides masks to use to extract elements from AoS to SoA based on the
 /// datatype and the width.
 namespace mask {
@@ -104,8 +106,10 @@ struct extractor_mask {
   static constexpr MaskType masks[Step] = {0};
 
 
-
 } // namespace mask
+
+*/
+
 } // namespace snap
 
 #endif // SNAP_SVEC_SVEC_GENERAL_HPP

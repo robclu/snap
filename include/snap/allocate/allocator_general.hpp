@@ -1,4 +1,4 @@
-//---- snap/smat/smat.hpp ---------------------------------- -*- C++ -*- ----//
+//---- snap/allocate/allocator_general.hpp ----------------- -*- C++ -*- ----//
 //
 //                                 Snap
 //                          
@@ -9,15 +9,17 @@
 //
 // ========================================================================= //
 //
-/// \file  smat.hpp
-/// \brief Includes all specific implementations of the smat class.
+/// \file  allocator_general.hpp
+/// \brief Defines the allocator struct which can be specialized for the
+///        different implementations.
 //
 //---------------------------------------------------------------------------//
 
-#ifndef SNAP_SMAT_SMAT_HPP
-#define SNAP_SMAT_SMAT_HPP
+#ifndef SNAP_ALLOCATE_ALLOCATOR_GENERAL_HPP
+#define SNAP_ALLOCATE_ALLOCATOR_GENERAL_HPP
 
-#include "smat_sse.hpp"
+namespace snap {
 
-#endif // SNAP_SMAT_SMAT_HPP
+} // namespace snap
 
+#endif // SNAP_ALLOCATE_ALLOCATOR_HPP
