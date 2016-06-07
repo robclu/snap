@@ -70,8 +70,8 @@ ENDIF()
 
 # ---- Smat Tests ----------------------------------------------------------- #
 
-set(TEST_NAME smat_tests)
-set(TEST_FILES smat_tests.cc)
+set(TEST_NAME matrix_tests)
+set(TEST_FILES matrix_tests.cc)
 set(TEST_LIBS
   ${Boost_FILESYSTEM_LIBRARY} 
   ${Boost_SYSTEM_LIBRARY}
@@ -81,16 +81,16 @@ set(TEST_LIBS
 MakeTest(TEST_NAME TEST_FILES TEST_LIBS TEST_BIN_DIR)
 
 IF(GENERATE_ASM)
-  set(ASM_NAME smat_tests_asm)
-  set(ASM_FILES smat_tests.cc)
+  set(ASM_NAME matrix_tests_asm)
+  set(ASM_FILES matrix_tests.cc)
   set(ASM_LIBS ${TEST_LIBS})
   MakeAsm(ASM_NAME ASM_FILES ASM_LIBS ASM_DIR)
 ENDIF()
 
 # ---- Svec Tests ----------------------------------------------------------- #
 
-set(TEST_NAME svec_tests)
-set(TEST_FILES svec_tests.cc)
+set(TEST_NAME vector_tests)
+set(TEST_FILES vector_tests.cc)
 set(TEST_LIBS
   ${Boost_FILESYSTEM_LIBRARY} 
   ${Boost_SYSTEM_LIBRARY}
@@ -100,8 +100,8 @@ set(TEST_LIBS
 MakeTest(TEST_NAME TEST_FILES TEST_LIBS TEST_BIN_DIR)
 
 IF(GENERATE_ASM)
-  set(ASM_NAME svec_tests_asm)
-  set(ASM_FILES svec_tests.cc)
+  set(ASM_NAME vector_tests_asm)
+  set(ASM_FILES vector_tests.cc)
   set(ASM_LIBS ${TEST_LIBS})
   MakeAsm(ASM_NAME ASM_FILES ASM_LIBS ASM_DIR)
 ENDIF()

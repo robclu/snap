@@ -25,7 +25,7 @@ namespace snap {
 /// vectorized data when the data type is 8-bit greyscale.
 /// \tparam DataType The type of data to allocate in an aligned manner.
 template <typename DataType>
-struct aligned_allocator {
+struct AlignedAllocator {
   /// Defines a function to allocate \p bytes of \p alignment aligned data.
   /// \param bytes     The number of bytes to allocate.
   /// \param alignment The alignment of the allocated data.

@@ -39,9 +39,8 @@
 
 namespace snap {
 
-/// Defines all possible simd instruction 
-/// types supported by snap.
-enum simd_types : uint8_t {
+/// Defines all possible simd instruction types supported by snap.
+enum SimdType : uint8_t {
   ST_SSE    = 0 ,
   ST_SSE2   = 1 , 
   ST_SSE3   = 2 , 
@@ -55,7 +54,7 @@ enum simd_types : uint8_t {
 };
 
 /// Defines all possible alignments.
-enum alignments : uint8_t {
+enum Alignments : uint8_t {
   AL_8  = 8 , 
   AL_16 = 16,
   AL_32 = 32
@@ -90,6 +89,7 @@ namespace snap {
 #elif defined(__AVX2__) && AVX2_ENABLED
 #include <immintrin.h>
 #define AVX2_ENABLED 1
+
 namespace snap {
   /// Defines memory alignment.
   static constexpr uint8_t ALIGNMENT = AL_32;
@@ -97,9 +97,11 @@ namespace snap {
   /// Defines highest level of SIMD instructions.
   static constexpr uint8_t SIMD_TYPE = ST_AVX2;
 } // namespace snap
+
 #elif defined(__AVX__) && AVX_ENABLED
 #include <immintrin.h>
 #define AVX_ENABLED 1
+
 namespace snap {
   /// Defines memory alignment.
   static constexpr uint8_t ALIGNMENT = AL_32;
@@ -107,9 +109,11 @@ namespace snap {
   /// Defines highest level of SIMD instructions.
   static constexpr uint8_t SIMD_TYPE = ST_AVX;
 } // namespace snap
+
 #elif defined(__SSE4_2__)
 #include <nmmintrin.h>
 #define SSE_ENABLED 1
+
 namespace snap {
   /// Defines memory alignment.
   static constexpr uint8_t ALIGNMENT = AL_16;
@@ -117,9 +121,11 @@ namespace snap {
   /// Defines highest level of SIMD instructions.
   static constexpr uint8_t SIMD_TYPE = ST_SSE42;
 } // namespace snap
+
 #elif defined(__SSE4_1__)
 #include <smmintrin.h>
 #define SSE_ENABLED 1
+
 namespace snap {
   /// Defines memory alignment.
   static constexpr uint8_t ALIGNMENT = AL_16;
@@ -127,9 +133,11 @@ namespace snap {
   /// Defines highest level of SIMD instructions.
   static constexpr uint8_t SIMD_TYPE = ST_SSE41;
 } // namespace snap
+
 #elif defined(__SSSE3__)
 #include <tmmintrin.h>
 #define SSE_ENABLED 1
+
 namespace snap {
   /// Defines memory alignment.
   static constexpr uint8_t ALIGNMENT = AL_16;
@@ -137,9 +145,11 @@ namespace snap {
   /// Defines highest level if SIMD instructions.
   static constexpr uint8_t SIMD_TYPE = ST_SSSE3;
 } // namespace snap
+
 #elif defined(__SSE3__)
 #include <pmmintrin.h>
 #define SSE_ENABLED 1
+
 namespace snap {
   /// Defines memory alignment.
   static constexpr uint8_t ALIGNMENT = AL_16;
@@ -147,9 +157,11 @@ namespace snap {
   /// Defines highest level if SIMD instructions.
   static constexpr uint8_t SIMD_TYPE = ST_SSE3; 
 } // namespace snap
+
 #elif defined(__SSE2__) || defined(__x86_64__)
 #include <emmintrin.h>
 #define SSE_ENABLED 1
+
 namespace snap {
   /// Defines memory alignment.
   static constexpr uint8_t ALIGNMENT = AL_16;
@@ -157,9 +169,11 @@ namespace snap {
   /// Defines highest level if SIMD instructions.
   static constexpr uint8_t SIND_TYPE = ST_SSE2;
 } // namespace snap
+
 #elif defined(__SSE)
 #include <xmmintrin.h>
 #define SSE_ENABLED 1
+
 namespace snap {
   /// Defines memory alignment.
   static constexpr uint8_t ALIGNMENT = AL_16;
@@ -167,6 +181,7 @@ namespace snap {
   /// Defines highest level if SIMD instructions.
   static constexpr uint8_t SIMD_TYPE = ST_SSE;
 } // namespace snap
+
 #else
  #error "No SIMD Instructions found! Snap can't function!"
 #endif

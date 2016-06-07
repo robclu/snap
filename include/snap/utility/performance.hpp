@@ -21,31 +21,32 @@
 
 namespace snap {
 
-/// Defines a type which can be used in unrolled lambda functions to access the
-/// value of the unrolling index. This is designed specificallt for the unroll
-/// function defined below.
-class unroll_index {
- private:
-  uint8_t value;  //!< The value of the unrolling index.
-
+/// Defines a type which can be used in unrolled lambda functions as a variable
+/// . The class is designed spcifically for use with the unroll functions, but
+/// can be used as an 8 bit unsigned integer.
+class UnrollIndex {
  public:
   /// Constructor: Sets the value of the unrolling index to 0.
-  constexpr unroll_index() : value(0) {}
+  constexpr UnrollIndex() : Value(0) {}
 
   /// Constructor: Allows the value of the unrolling index to be set.
-  /// \param[in] val The value to set the unrolling index to.
-  constexpr unroll_index(uint8_t val) : value(val) {}
+  /// \param[in] value The value to set the unrolling index to.
+  constexpr UnrollIndex(uint8_t value) : Value(value) {}
 
   /// Operator uint8_t: Allows the unrolling constant to be used as an 8-bit
-  /// unsigneg integer.
-  constexpr operator uint8_t() const { return value; }
+  /// unsigned integer, and as a constexpr value where it is defined to be
+  /// such.
+  constexpr operator uint8_t() const { return Value; }
+
+ private:
+  uint8_t Value;  //!< The value of the unrolling index.
 };
 
 namespace util   {
 namespace perf   {
 
 /// Defines the types of unroll functions. The following bits are used to
-/// determine the type of the unroll:
+/// determine the type of the unroll function:
 ///
 ///         -----------------------------------------
 /// Bit     |  7 |  6 |  5 |  4 |  3 |  2 |  1 |  0 |
@@ -55,13 +56,13 @@ namespace perf   {
 ///
 /// Where
 ///         ST = Span Type    : The type of span, options are:
-///            - 1  : Valis span (Start < End).
+///            - 1  : Valid span (Start < End).
 ///            - 0  : End span (Start = End).
 ///
 ///         UI = Unroll Index : If an unroll index is being used, options are:
 ///            - 1  : Unroll index is being used.
 ///            - 0  : No unroll index is being used.
-enum unroll_type : uint8_t {
+enum UnrollType : uint8_t {
   END_SPAN_WO_UROLL = 0,
   END_SPAN_WI_UROLL = 1,
   VAL_SPAN_WO_UROLL = 2, 
@@ -70,24 +71,24 @@ enum unroll_type : uint8_t {
 
 namespace detail {
 
-/// Defines a struct to detect which version of the loop unrolling functions is
-/// valid.
-/// \tparam F     The function type to check for an unroll_index const.
+/// Defines a struct to help select the correct version of the unrolling
+/// functions.
+/// \tparam F     The function type to check for an UnrollIndex type.
 /// \tparam Start The starting value of the span.
 /// \tparam End   The end value of the span.
 template <typename F, uint8_t Start, uint8_t End>
 struct unroll_enable {
   /// Defines the type of the function.
-  using arg_type = typename traits::function_traits<F>::template arg<0>::type;
+  using Arg0Type = typename traits::function_traits<F>::template arg<0>::type;
 
   /// Defines the arity (number of arguments) of the function.
   static constexpr uint8_t arity = traits::function_traits<F>::arity;
 
-  /// Returns the unroll_type of the function by bit shifting the properties of
+  /// Returns the UnrollType of the function by bit shifting the properties of
   /// the function to the correct positions.
   static constexpr uint8_t value = 
-    (traits::check_unroll_span<Start, End>::is_valid() << 1) |  // Bit 1
-    (std::is_same<arg_type, unroll_index>::value);              // Bit 0
+    (std::is_same<Arg0Type, UnrollIndex>::value)            |   // Bit 0
+    (traits::check_unroll_span<Start, End>::isValid() << 1);    // Bit 1
 };
 
 } // namespace detail
@@ -95,63 +96,59 @@ struct unroll_enable {
 /// Defines a function that can unroll a lambda function to improve performance 
 /// in critical sections of code. The function is valid for a span (the range
 /// of Start -> End template paramters) where the start of the span is less
-/// than or equal to the end of the span.
+/// than or equal to the end of the span. The span is non inclusive, so the
+/// number of unrolls is: 
 ///
-/// The function will pass the constant value (unroll index) as the first 
-/// argument in the lambda, if the lambda has a parameter (const
-/// snap::unroll_index) or (snap::unroll_index), which is how the unrolling
-/// index can be accessed. For example, the following:
+///   unrolls = End - Start + 1
 ///
-///   snap::util::perf::unroll<0, 3>( [&some_array] (snap::unroll_index u) {
-///     some_array[u] = u * u;
+/// The function will pass the span value as the first argument in the lambda, 
+/// if the lambda has a first parameter of type const snap::UnrollIndex or 
+/// snap::UnrollIndex, which is how the unrolling index can be accessed inside
+/// the unrolled lambda. For example, the following:
+///
+///   snap::util::perf::unroll<0, 3>( [&someArray] (snap::UnrollIndex u) {
+///     someArray[u] = u * u;
 ///   });
 ///
 /// is equivalent to:
 ///
-///   some_array[0] = 0 * 0;
-///   some_array[1] = 1 * 1;
-///   some_array[2] = 2 * 2;
-///   some_array[3] = 3 * 3;
+///   someArray[0] = 0 * 0;
+///   someArray[1] = 1 * 1;
+///   someArray[2] = 2 * 2;
+///   someArray[3] = 3 * 3;
 ///
 /// The values of any additional parameters for the lambda must be provided
 /// after the lambda. For example, the following:
 ///
 /// snap::util::perf::unroll<0, 3>( 
-///   [&some_array] (snap::unroll_index u, int init_offset) {
-///     some_array[init_offset + u] = init_offset + u;
+///   [&someArray] (snap::UnrollIndex u, int offset) {
+///     someArray[offset + u] = offset + u;
 ///   }, 
-///   1000  // Value of init_offset
+///   1000  // Value of offset
 /// );
 ///
 /// is equivalent to:
 ///
-///   some_array[1000 + 0] = 1000 + 0;
-///   some_array[1000 + 1] = 1000 + 1;
-///   some_array[1000 + 2] = 1000 + 2;
-///   some_array[1000 + 3] = 1000 + 3;
+///   someArray[1000 + 0] = 1000 + 0;
+///   someArray[1000 + 1] = 1000 + 1;
+///   someArray[1000 + 2] = 1000 + 2;
+///   someArray[1000 + 3] = 1000 + 3;
 ///
-/// However, the same functionality can be achieved by declaring the variable
-/// outside the lambda and capturing it:
+/// Lastly, if lambda function does not need to access the value of the
+/// unrolled index, then simply omit the (const snap::UnrollIndex) or 
+/// (snap::UnrollIndex) parameter from the lambda, and specify other arguments 
+/// after the lambda as in the example above. For example:
 ///
-/// const int init_offset = 1000;
+/// size_t someVar = 0; 
+/// size_t offset  = 10;
 ///
-/// snap::util::perf::unroll<0, 3>( 
-///   [&some_array, init_offset] (snap::unroll_index u) {
-///     some_array[init_offset + u] = init_offset + u;
-///   }
+/// snap::util::perf::unroll<0, 15>([&someVar] (const size_t off) {
+///     someVar += off;
+///
+///     // Some other code ...
+///   },
+///   offset
 /// );
-///
-/// is equivalent to:
-///
-///   some_array[1000 + 0] = 1000 + 0;
-///   some_array[1000 + 1] = 1000 + 1;
-///   some_array[1000 + 2] = 1000 + 2;
-///   some_array[1000 + 3] = 1000 + 3;
-/// 
-///
-/// Lastly, if unroll index will not be used then simply omit the (const
-/// snap::unroll_index) or (snap::unroll_index) parameter for the lambda, and
-/// specify other arguments after the lambda as in the example above.
 ///
 /// \tparam Start  The start valud of the unroll_index.
 /// \tparam End    The end valud of the unroll index (inclusive).
@@ -169,10 +166,10 @@ void unroll(Lambda l,
         (detail::unroll_enable<decltype(l), Start, End>::value 
          == END_SPAN_WI_UROLL),
         typename traits::function_traits<decltype(l)>::template arg<1>::type> 
-    arg = traits::function_traits<decltype(l)>::template arg<1>::default_arg()
+    arg = traits::function_traits<decltype(l)>::template arg<1>::defaultArg()
   ) {
   // Call the lambda and give pass it the unroll_index value.
-  l(unroll_index(Start));
+  l(UnrollIndex(Start));
 }
 
 template <uint8_t Start, uint8_t End, typename Lambda>
@@ -183,10 +180,10 @@ void unroll(Lambda l,
         (detail::unroll_enable<decltype(l), Start, End>::value 
          == VAL_SPAN_WI_UROLL),
         typename traits::function_traits<decltype(l)>::template arg<1>::type> 
-    arg = traits::function_traits<decltype(l)>::template arg<1>::default_arg()
+    arg = traits::function_traits<decltype(l)>::template arg<1>::defaultArg()
   ) {
   // Call the lambda and pass it the unroll_index_value.
-  l(unroll_index(Start));
+  l(UnrollIndex(Start));
 
   // Invoke the next iteration of the unrolling.
   unroll<Start + 1, End>(l);
@@ -203,15 +200,15 @@ void unroll(Lambda l,
         (detail::unroll_enable<decltype(l), Start, End>::value 
          == END_SPAN_WI_UROLL),
         typename traits::function_traits<decltype(l)>::template arg<1>::type>
-    arg = traits::function_traits<decltype(l)>::template arg<1>::default_arg(), 
+    arg = traits::function_traits<decltype(l)>::template arg<1>::defaultArg(), 
     Args&&... args) {
   // Define the type of the first argument.
-  using arg_type = 
+  using ArgType = 
     typename traits::function_traits<decltype(l)>::template arg<1>::type;
 
   // Call the lambda and pass it the unroll const as well as the args.
-  l(unroll_index(Start)         , 
-    std::forward<arg_type>(arg) , 
+  l(UnrollIndex(Start)        , 
+    std::forward<ArgType>(arg), 
     std::forward<Args>(args)...
   );
 }
@@ -227,21 +224,24 @@ void unroll(Lambda l,
         (detail::unroll_enable<decltype(l), Start, End>::value 
          == VAL_SPAN_WI_UROLL),
         typename traits::function_traits<decltype(l)>::template arg<1>::type>
-    arg = traits::function_traits<decltype(l)>::template arg<1>::default_arg(), 
+    arg = traits::function_traits<decltype(l)>::template arg<1>::defaultArg(), 
     Args&&... args) {
   // Define the type of the first argument.
-  using arg_type = 
+  using ArgType = 
     typename traits::function_traits<decltype(l)>::template arg<1>::type;
 
   // Call the lambda and pass it the unroll const as well as the args.
-  l(unroll_index(Start)         , 
-    std::forward<arg_type>(arg) , 
+  l(UnrollIndex(Start)         , 
+    std::forward<ArgType>(arg) , 
     std::forward<Args>(args)...
   );
 
   // Invoke the next iteration of the unrolling.
-  unroll<Start + 1, End>(l, std::forward<arg_type&&>(arg), 
-    std::forward<Args&&>(args)...);
+  unroll<Start + 1, End>(
+    l                            , 
+    std::forward<ArgType&&>(arg) , 
+    std::forward<Args&&>(args)...
+  );
 }
 
 // This case is enabled when the span is the end of the span and the first
@@ -255,9 +255,8 @@ void unroll(Lambda l,
     (detail::unroll_enable<decltype(l), Start, End>::value 
      == END_SPAN_WO_UROLL), 
     typename traits::function_traits<decltype(l)>::template arg<0>::type> 
-    arg = traits::function_traits<decltype(l)>::template arg<0>::default_arg()
+    arg = traits::function_traits<decltype(l)>::template arg<0>::defaultArg()
   ) { 
-  // Call the lambda function with no arguments.
   l();
 }
 
@@ -271,13 +270,12 @@ void unroll(Lambda l,
         (detail::unroll_enable<decltype(l), Start, End>::value 
          == VAL_SPAN_WO_UROLL),
         typename traits::function_traits<decltype(l)>::template arg<0>::type>
-    arg = traits::function_traits<decltype(l)>::template arg<0>::default_arg()
+    arg = traits::function_traits<decltype(l)>::template arg<0>::defaultArg()
   ) {
-  // Call the lambda with no arguments.
   l();
 
   // Invoke the next iteration of the unrolling.
-  unroll<Start + 1, End> (l);
+  unroll<Start + 1, End>(l);
 }
 
 // This case is enabled when the span is the end of the span and the first
@@ -291,14 +289,14 @@ void unroll(Lambda l,
     (detail::unroll_enable<decltype(l), Start, End>::value 
      == END_SPAN_WO_UROLL), 
     typename traits::function_traits<decltype(l)>::template arg<0>::type> 
-    arg = traits::function_traits<decltype(l)>::template arg<0>::default_arg(),
+    arg = traits::function_traits<decltype(l)>::template arg<0>::defaultArg(),
     Args&&... args) {
   // Define the type of the first argument.
-  using arg_type = 
+  using ArgType = 
     typename traits::function_traits<decltype(l)>::template arg<0>::type;
 
   // Call the lambda and pass the arguments.
-  l(std::forward<arg_type>(arg));
+  l(std::forward<ArgType>(arg));
 }
 
 // This case is enabled when the span is a valid span and the first argument of
@@ -311,17 +309,17 @@ void unroll(Lambda l,
         (detail::unroll_enable<decltype(l), Start, End>::value 
          == VAL_SPAN_WO_UROLL),
         typename traits::function_traits<decltype(l)>::template arg<0>::type>
-    arg = traits::function_traits<decltype(l)>::template arg<0>::default_arg(),
+    arg = traits::function_traits<decltype(l)>::template arg<0>::defaultArg(),
     Args&&... args) {
   // Define the type of the first argument.
-  using arg_type = 
+  using ArgType = 
     typename traits::function_traits<decltype(l)>::template arg<0>::type;
 
   // Call the lambda and pass it the unroll const as well as the args.
-  l(std::forward<arg_type>(arg), std::forward<Args>(args)...);
+  l(std::forward<ArgType>(arg), std::forward<Args>(args)...);
 
   // Invoke the next iteration of the unrolling.
-  unroll<Start + 1, End>(l, std::forward<arg_type&&>(arg), 
+  unroll<Start + 1, End>(l, std::forward<ArgType&&>(arg), 
     std::forward<Args&&>(args)...);
 }
 

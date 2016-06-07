@@ -14,18 +14,18 @@
 //
 //---------------------------------------------------------------------------//
 
-#define BOOST_TEST_MODULE snap_config_tests
+#define BOOST_TEST_MODULE SnapConfigTests
 
 #include <boost/test/unit_test.hpp>
 #include "snap/config/simd_instruction_detect.h"
 
-BOOST_AUTO_TEST_SUITE(snap_config_suite)
+BOOST_AUTO_TEST_SUITE(SnapConfigSuite)
 
-BOOST_AUTO_TEST_CASE(simd_type_detected) {
+BOOST_AUTO_TEST_CASE(simdTypeDetected) {
   BOOST_CHECK(snap::SIMD_TYPE >= 0 && snap::SIMD_TYPE <= 10);
 }
 
-BOOST_AUTO_TEST_CASE(alignment_set) {
+BOOST_AUTO_TEST_CASE(alignmentSet) {
   BOOST_CHECK(snap::ALIGNMENT % 2 == 0 && snap::ALIGNMENT != 0);
 }
 

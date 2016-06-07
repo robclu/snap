@@ -68,7 +68,7 @@ struct arg_traits<Idx, Arg, Args...> {
   /// less than the number of args (idx is valid).
   template <size_t I = Idx>
   static constexpr typename 
-  std::enable_if_t<(I < sizeof...(Args) + 1), type>  default_arg() {
+  std::enable_if_t<(I < sizeof...(Args) + 1), type>  defaultArg() {
     return type();
   }
 
@@ -77,7 +77,7 @@ struct arg_traits<Idx, Arg, Args...> {
   /// nullptr.
   template <size_t I = Idx>
   static constexpr typename
-  std::enable_if_t<(I >= sizeof...(Args) + 1), type> default_arg() {
+  std::enable_if_t<(I >= sizeof...(Args) + 1), type> defaultArg() {
     return nullptr;
   }
 };
@@ -90,7 +90,7 @@ struct arg_traits<Idx> {
 
   /// Returns the default value as a nullptr because the default type for this
   /// case is defined to be a void*.
-  static constexpr type default_arg() { return nullptr; }
+  static constexpr type defaultArg() { return nullptr; }
 };
 
 } // namespace detail
@@ -123,33 +123,11 @@ struct function_traits<ReturnType(ClassType::*)(Args...) const> {
     using type = typename detail::arg_traits<Idx, Args...>::type;
 
     /// Defines the default type for the argument at Idx.
-    static constexpr type default_arg() { 
-      return detail::arg_traits<Idx, Args...>::default_arg();
+    static constexpr type defaultArg() { 
+      return detail::arg_traits<Idx, Args...>::defaultArg();
     }
   };
 };
-
-/*
-// Specialization for a pointer to a member function with no arguments.
-// \tparam ClassType  The type of the class the member function is part of.
-// \tparam ReturnType The return type of the function.
-// \tparam Args...    The argument types for the function.
-template <typename ClassType, typename ReturnType>
-struct function_traits<ReturnType(ClassType::*)() const> {
-  /// Returns the number of arguments for the function.
-  static constexpr size_t arity = 0;
-
-  /// Defines the return type of the function.
-  using return_type = ReturnType;
-
-  /// Defines a struct which specifies that for any index the parameter type is
-  /// void when the function has no arguments.
-  template <size_t Idx>
-  struct arg {
-    using type = void;
-  };
-};
-*/
 
 /// Defines a struct to check if a span (range of numbers) is valid for
 /// unrolling, or if the span specifies the end of the range of numbers.
@@ -159,12 +137,12 @@ template <uint8_t Start, uint8_t End>
 struct check_unroll_span {
 
   /// Checks if the span is valid for unrolling (Start < End).
-  static constexpr bool is_valid() {
+  static constexpr bool isValid() {
     return Start < End;
   }
 
   /// Checks if anspan specifies the end of the span.
-  static constexpr bool is_end() {
+  static constexpr bool isEnd() {
     return Start == End;
   }
 };

@@ -1,4 +1,4 @@
-//---- tests/smat_tests.cc --------------------------------- -*- C++ -*- ----//
+//---- tests/matrix_tests.cc ------------------------------- -*- C++ -*- ----//
 //
 //                                 Snap
 //                          
@@ -9,26 +9,26 @@
 //
 // ========================================================================= //
 //
-/// \file  smat_tests.cc
-/// \brief Test file to test the snap smat class.
+/// \file  matrix_tests.cc
+/// \brief Test file to test the snap Matrix class.
 //
 //---------------------------------------------------------------------------//
 
-#define BOOST_TEST_MODULE snap_smat_tests
+#define BOOST_TEST_MODULE SnapMatrixTests
 
 #include <boost/test/unit_test.hpp>
-#include "snap/smat/smat.hpp"
+#include "snap/matrix/matrix.hpp"
 
 using namespace snap;
 
-BOOST_AUTO_TEST_SUITE(snap_smat_suite)
+BOOST_AUTO_TEST_SUITE(SnapMatrixSuite)
 
-BOOST_AUTO_TEST_CASE(can_default_construct_smat_grey_8) {
-  smat<mat::FMT_GREY_8> mat_grey;
+BOOST_AUTO_TEST_CASE(canDefaultConstructMatGrey8) {
+  Matrix<mat::FM_GREY_8> mat;
 
-  BOOST_CHECK(mat_grey.rows() == 0);
-  BOOST_CHECK(mat_grey.cols() == 0);
-  BOOST_CHECK(mat_grey.size() == 0);
+  BOOST_CHECK(mat.rows() == 0);
+  BOOST_CHECK(mat.cols() == 0);
+  BOOST_CHECK(mat.size() == 0);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

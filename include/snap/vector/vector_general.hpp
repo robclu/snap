@@ -1,4 +1,4 @@
-//---- snap/svec/svec_general.hpp -------------------------- -*- C++ -*- ----//
+//---- snap/vector/vector_general.hpp ---------------------- -*- C++ -*- ----//
 //
 //                                 Snap
 //                          
@@ -9,50 +9,53 @@
 //
 // ========================================================================= //
 //
-/// \file  svec_general.hpp
-/// \brief Defiition of the general svec class which can be specialized for the 
-///        different platforms and width's which are supported.
+/// \file  vector_general.hpp
+/// \brief Definition of the general Vector class which can be specialized for 
+///        the different platforms and width's which are supported.
 //
 //---------------------------------------------------------------------------//
 
-#ifndef SNAP_SVEC_SVEC_GENERAL_HPP
-#define SNAP_SVEC_SVEC_GENERAL_HPP
+#ifndef SNAP_VECTOR_VECTOR_GENERAL_HPP
+#define SNAP_VECTOR_VECTOR_GENERAL_HPP
 
 #include <limits>
 
 namespace snap {
 
-/// Defines a general vector class which can be overloaded for specific
+/// Defines a general Vector class which can be overloaded for specific
 /// platforms, data types, and widths.                                       \n
 ///
-/// The following data types are supported:                                  \n
+/// The following data types are supported (depending on the platform, see
+/// vector.hpp for more information):                                        \n
 ///   -) uint8_t                                                             \n 
 ///   -) int8_t                                                              \n 
 ///   -) uint16_t                                                            \n
 ///   -) int16_t                                                             \n
-///   -) uint32_t
-///   -) int32_t 
-///   -) uint64_t 
-///   -) int64_t
-///   -) float
-///   -) double
-///
-/// The following widths are supported:
-///   -) 2
-///   -) 4
-///   -) 8
-///   -) 16
-///   -) 32
-///   -) 64
+///   -) uint32_t                                                            \n
+///   -) int32_t                                                             \n
+///   -) uint64_t                                                            \n
+///   -) int64_t                                                             \n
+///   -) float                                                               \n
+///   -) double                                                              \n
+///                                                                          \n
+/// The following widths are supported (also depending on the platform, see
+/// vector.hpp for more information):                                        \n
+///   -) 2                                                                   \n
+///   -) 4                                                                   \n
+///   -) 8                                                                   \n
+///   -) 16                                                                  \n
+///   -) 32                                                                  \n
+///   -) 64                                                                  \n
 ///
 /// \note The width must be a power of 2. A vector may contain a non power of 2
 ///       number of elements but the width should be the next highest power of
 ///       2 number. For example, for an 11 element vector, specify the width to
 ///       be 16.
+///
 /// \tparam DType The internal data type being used. 
 /// \tparam Width The number of Type elements in the vector.
-template <typename Type, uint8_t Width>
-class svec;
+template <typename DType, uint8_t Width>
+class Vector;
 
 /*
 

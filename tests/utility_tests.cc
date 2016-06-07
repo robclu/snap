@@ -14,7 +14,7 @@
 //
 //---------------------------------------------------------------------------//
 
-#define BOOST_TEST_MODULE snap_utility_tests
+#define BOOST_TEST_MODULE SnapUtilityTests
 
 #include <boost/test/unit_test.hpp>
 #include "snap/utility/utility.hpp"
@@ -29,20 +29,20 @@ using namespace snap;
 
 static constexpr uint64_t UNROLL_SIZE = 8;
 
-struct performance_fixture {
+struct PerformanceFixture {
   std::array<uint64_t, 10000> elements = {0};
 };
 
-BOOST_FIXTURE_TEST_SUITE(snap_utility_performance_suite, performance_fixture)
+BOOST_FIXTURE_TEST_SUITE(SnapUtilityPerformanceSuite, PerformanceFixture)
 
-BOOST_AUTO_TEST_CASE(can_unroll_with_unroll_index) {
+BOOST_AUTO_TEST_CASE(canUnrollWithUnrollIndex) {
   const auto end = elements.size() - UNROLL_SIZE + 1;
 
   // Set each element in the array to its index value, but unroll it.
   for (size_t i = 0; i < end; i += UNROLL_SIZE) {
     util::perf::unroll<0, UNROLL_SIZE - 1>(
-      [&] (const unroll_index uidx) {
-        elements[i + uidx] = i + uidx;
+      [&] (const UnrollIndex unrollIdx) {
+        elements[i + unrollIdx] = i + unrollIdx;
       }
     );
   }
@@ -52,27 +52,27 @@ BOOST_AUTO_TEST_CASE(can_unroll_with_unroll_index) {
 } 
 
 
-BOOST_AUTO_TEST_CASE(can_unroll_with_unroll_index_and_other_params) {
-  const auto    end    = elements.size() - UNROLL_SIZE + 1;
-  const int     offset_a = 12;
-  const int16_t offset_b = 123;
+BOOST_AUTO_TEST_CASE(canUnrollWithUnrollIndexAndOtherParams) {
+  const auto    end     = elements.size() - UNROLL_SIZE + 1;
+  const int     offsetA = 12;
+  const int16_t offsetB = 123;
 
   // Set each element to it's index plus the offset values.
   for (size_t i = 0; i < end; i += UNROLL_SIZE) {
     util::perf::unroll<0, UNROLL_SIZE - 1>(
-      [&] (const unroll_index uidx, const int off_a, const int16_t off_b) {
-        elements[i + uidx] = i + uidx + off_a + off_b;
+      [&] (const UnrollIndex unrollIdx, const int offA, const int16_t offB) {
+        elements[i + unrollIdx] = i + unrollIdx + offA + offB;
       }, 
-      offset_a,       // Value of off_a in unrolled lambda.
-      offset_b        // Value of off_b in unrolled lambda.
+      offsetA,       // Value of offA in unrolled lambda.
+      offsetB        // Value of offB in unrolled lambda.
     );
   }
 
   for (size_t i = 0; i < elements.size(); ++i) 
-    BOOST_CHECK(elements[i] == i + offset_a + offset_b);
+    BOOST_CHECK(elements[i] == i + offsetA + offsetB);
 }
 
-BOOST_AUTO_TEST_CASE(can_unroll_without_unroll_index) {
+BOOST_AUTO_TEST_CASE(canUnrollWithoutUnrollIndex) {
   size_t           x   = 0;
   constexpr size_t END = 10;
   for (size_t i = 0; i < END; ++i) {
@@ -85,21 +85,21 @@ BOOST_AUTO_TEST_CASE(can_unroll_without_unroll_index) {
   BOOST_CHECK(x == (END * UNROLL_SIZE));
 }
 
-BOOST_AUTO_TEST_CASE(can_unroll_without_unroll_index_and_other_params) {
-  size_t           x        =  0;
-  uint8_t          offset_b = 20;
-  constexpr size_t END      = 10;
+BOOST_AUTO_TEST_CASE(canUnrollWithoutUnrollIndexAndtherParams) {
+  size_t           x       =  0;
+  uint8_t          offsetB = 20;
+  constexpr size_t END     = 10;
 
   for (size_t i = 0; i < END; ++i) {
     util::perf::unroll<0, UNROLL_SIZE - 1>(
-      [&] (const uint8_t off_b) {
-        x += 1 + off_b;
+      [&] (const uint8_t offB) {
+        x += 1 + offB;
       }, 
-      offset_b  // Value of off_b in unrolled lambda.
+      offsetB  // Value of offB in unrolled lambda.
     );
   }
 
-  BOOST_CHECK(x == (END * UNROLL_SIZE * (1 + offset_b)));
+  BOOST_CHECK(x == (END * UNROLL_SIZE * (1 + offsetB)));
 }
 
 BOOST_AUTO_TEST_SUITE_END()  

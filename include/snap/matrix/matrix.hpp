@@ -1,4 +1,4 @@
-//---- snap/smat/smat.hpp ---------------------------------- -*- C++ -*- ----//
+//---- snap/matrix/matrix.hpp ------------------------------ -*- C++ -*- ----//
 //
 //                                 Snap
 //                          
@@ -9,15 +9,15 @@
 //
 // ========================================================================= //
 //
-/// \file  smat.hpp
-/// \brief Includes all specific implementations of the smat class.
+/// \file  matrix.hpp
+/// \brief Includes all specific implementations of the Matrix class.
 //
 //---------------------------------------------------------------------------//
 
-#ifndef SNAP_SMAT_SMAT_HPP
-#define SNAP_SMAT_SMAT_HPP
+#ifndef SNAP_MATRIX_MATRIX_HPP
+#define SNAP_MATRix_MATRIX_HPP
 
-#include "smat_sse.hpp"
+#include "matrix_sse.hpp"
 
-#endif // SNAP_SMAT_SMAT_HPP
+#endif // SNAP_MATRIX_MATRIX_HPP
 

@@ -1,4 +1,4 @@
-//---- snap/svec/svec_sse.hpp ------------------------------ -*- C++ -*- ----//
+//---- snap/vector/vector_sse.hpp -------------------------- -*- C++ -*- ----//
 //
 //                                 Snap
 //                          
@@ -9,67 +9,54 @@
 //
 // ========================================================================= //
 //
-/// \file  svec_sse.hpp
-/// \brief Defiition of svec class SSE implementation. The possible options 
+/// \file  vector_sse.hpp
+/// \brief Defiition of Vector class SSE implementation. The possible options 
 ///        for snap vector types when using SSE instructions are the following:
 ///
-///        -) vec<uint8|sint8, 16> : Vec of 16 8 bit ints. 
-///           Alias: 
-///             : svec16x8u     : Vec of 16 8 bit unsigned integers.
-///             : svec16x8s     : Vec of 16 8 bit signed integers.
+///        -) Vec<uint8_t|int8_t, 16> : Vec of 16 8 bit ints. 
 ///
-///        -) vec<uint16|sint16, 8> : Vec of 8 16 bit integers.
-///           Aliases: 
-///             : svec8x16u     : Vec of 8 16 bit unsigned integers.
-///             : svec8x16s     : Vec of 8 16 bit signed intefers.
-///
+///\note   The aliases are defined in vector_see.hpp.
 //
 //---------------------------------------------------------------------------//
 
-#ifndef SNAP_SVEC_SVEC_SSE_HPP
-#define SNAP_SVEC_SVEC_SSE_HPP
+#ifndef SNAP_VECTOR_VECTOR_SSE_HPP
+#define SNAP_VECTOR_VECTOR_SSE_HPP
 
-#include "svec_general.hpp"
+#include "vector_general.hpp"
 #include "snap/config/simd_instruction_detect.h"
 
 namespace snap {
 
-/// Implementation of svec class for integer cases and SSE instructions where
+/// Implementation of Vector class for integer cases and SSE instructions where
 /// the width of the vector is 16 elements and the data type can be either an
 /// 8-bit signed or unsigned integer.
 /// \tparam DType The type of the data elements.
-/// \tparam Width The number of elements in the vector.
 template <typename DType>
-class svec<DType, 16> {
+class Vector<DType, 16> {
  public:
-  using intern_dtype = DType;              //!< Alias for internal data type.
-  using data_type    = __m128i;            //!< Alias for the vector data type.
-  using svec_type    = svec<DType, 16>;    //!< Alias for the type of vector.
+  using VecDType = __m128i;               //!< Alias for the vector data type.
+  using VecType  = Vector<DType, 16>;     //!< Alias for the type of vector.
 
-  /// Width of the vector.
-  static constexpr uint8_t width = 16;
- private:
-  data_type data;                       //!< Data for the vector.
+  static constexpr uint8_t width = 16;    //!< Width of the vector.
 
- public:
   // ---- Constructors ----------------------------------------------------- //
 
   /// Default constructor: does nothing.
-  svec() {}
+  Vector() {}
 
   /// Constructor: Create vector from iternal intrinsic type.
   /// \param[in] x The intrinsic variable to use to initialize the internal 
   ///              vector.
-  svec(const data_type& x);
+  Vector(const VecDType& x);
 
   /// Constructor: Broadcasts a single 8 bit int of type DType into the vector. 
   /// \param[in] x The 8 bit int to broadcast.
-  svec(intern_dtype x);
+  Vector(DType x);
 
   /// Constructor: Sets a pointer to an array of elements as vector elements.
   /// \param[in] p A pointer to the start of the elements to load into to
   ///              vector.
-  svec(intern_dtype* p);
+  Vector(DType* p);
 
   // ---- Operators -------------------------------------------------------- //
   
@@ -80,12 +67,12 @@ class svec<DType, 16> {
   /// Assignment operator: Allows the conversion from intrinsic types.
   /// \param[in] x The intrinsic variable to use ti set the internal vector.
   /// \return      A reference to the vector.
-  svec_type& operator=(const data_type& x);
+  VecType& operator=(const VecDType& x);
 
   /// Access operator: Allows a specific element of the vector to be fetched.
   /// This does not check bounds due to performance implications.
   /// \param[in] idx The index of the element to fetch.
-  intern_dtype operator[](uint8_t idx) const;
+  DType operator[](uint8_t idx) const;
 
   // ---- General Operations ----------------------------------------------- //
  
@@ -118,74 +105,77 @@ class svec<DType, 16> {
   /// value.
   /// \param[in] idx The index of the element to set the value of.
   /// \param[in] val The value to set the element to.
-  void set(uint8_t idx, intern_dtype val);
+  void set(uint8_t idx, DType val);
+
+ private:
+  VecDType Data;                            //!< Data for the vector.
 
 } SNAP_ALIGNED;
 
 // ---- Implementation ----------------------------------------------------- //
 
 template <typename DT> SNAP_INLINE
-svec<DT, 16>::svec(const data_type& x) {
-  data = x;
+Vector<DT, 16>::Vector(const VecDType& x) {
+  Data = x;
 }
 
 template <typename DT> SNAP_INLINE 
-svec<DT, 16>::svec(DT x) {
-  data = _mm_set1_epi8(x);
+Vector<DT, 16>::Vector(DT x) {
+  Data = _mm_set1_epi8(x);
 }
 
 template <typename DT> SNAP_INLINE 
-svec<DT, 16>::svec(DT* p) {
+Vector<DT, 16>::Vector(DT* p) {
   load(p);
 }
 
 template <typename DT> SNAP_INLINE
-svec<DT, 16>::operator __m128i() const {
-  return data;
+Vector<DT, 16>::operator __m128i() const {
+  return Data;
 }
 
 template <typename DT> SNAP_INLINE 
-svec<DT, 16>& svec<DT, 16>::operator=(const data_type& x) {
-  data = x;
+Vector<DT, 16>& Vector<DT, 16>::operator=(const VecDType& x) {
+  Data = x;
   return *this;
 }
 
 template <typename DT> SNAP_INLINE
-DT svec<DT, 16>::operator[](uint8_t idx) const {
-  SNAP_ALIGN(16) DT data_array[16];
-  store(data_array);
-  return data_array[idx];
+DT Vector<DT, 16>::operator[](uint8_t idx) const {
+  SNAP_ALIGN(16) DT dataArray[16];
+  store(dataArray);
+  return dataArray[idx];
 }
 
 template <typename DT> SNAP_INLINE
-void svec<DT, 16>::load(void* p) {
-  data = _mm_loadu_si128(reinterpret_cast<data_type const*>(p));
+void Vector<DT, 16>::load(void* p) {
+  Data = _mm_loadu_si128(reinterpret_cast<VecDType const*>(p));
 }
 
 template <typename DT> SNAP_INLINE 
-void svec<DT, 16>::loada(void* p) {
-  data = _mm_load_si128(reinterpret_cast<data_type const*>(p));
+void Vector<DT, 16>::loada(void* p) {
+  Data = _mm_load_si128(reinterpret_cast<VecDType const*>(p));
 }
 
 template <typename DT> SNAP_INLINE 
-void svec<DT, 16>::store(void* p) const {
-  _mm_store_si128(reinterpret_cast<data_type*>(p), data);
+void Vector<DT, 16>::store(void* p) const {
+  _mm_store_si128(reinterpret_cast<VecDType*>(p), Data);
 }
 
 template <typename DT> SNAP_INLINE 
-void svec<DT, 16>::storeu(void* p) const {
-  _mm_storeu_si128(reinterpret_cast<data_type*>(p), data);
+void Vector<DT, 16>::storeu(void* p) const {
+  _mm_storeu_si128(reinterpret_cast<VecDType*>(p), Data);
 }
 
 template <typename DT> SNAP_INLINE 
-void svec<DT, 16>::set(uint8_t idx, DT val) {
+void Vector<DT, 16>::set(uint8_t idx, DT val) {
   SNAP_ALIGN(16) DT tmp[16];
-  _mm_store_si128(reinterpret_cast<data_type*>(tmp), data);
+  _mm_store_si128(reinterpret_cast<VecDType*>(tmp), Data);
   tmp[idx] = val;
-  data = _mm_load_si128(reinterpret_cast<data_type const*>(tmp));
+  Data = _mm_load_si128(reinterpret_cast<VecDType const*>(tmp));
 }
 
 } // namespace snap
 
-#endif // SNAP_SVECTOR_SVECTOR_SSE_HPP
+#endif // SNAP_VECTOR_VECTOR_SSE_HPP
 
