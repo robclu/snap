@@ -61,58 +61,68 @@ class Matrix {
   /// Constructor: Creates an empty matrix.
   Matrix();
 
-  /// Constructor: Creates a matrix with a specific size.
+  /// Constructor: Creates a matrix with a specific size. If the default
+  /// allocator is used, and cols is not a multiple of the alignment 
+  /// (snap::ALIGNMENT) each row is padded with empty bytes so that the number
+  /// of column elements are aligned.
   Matrix(size_t rows, size_t cols);
 
   /// Destructor: Cleans up matrix memory.
   ~Matrix();
 
-  /// Row size operation: Gets the number of rows in the matrix.
+  /// Row size getter: Gets the number of rows in the matrix.
   size_t rows() const { return Rows; }
 
-  /// Col size operation: Gets the number of columns in the matrix.
+  /// Col size getter: Gets the number of columns in the matrix.
   size_t cols() const { return Cols; }
+
+  /// Step size getter: Gets the step size (number of elements per row).
+  size_t step() const { return Step; }
 
   /// Size operation: Gets the total number of elements in the matrix.
   size_t size() const { 
-    return (Rows * Cols % ALIGNMENT == 0) 
-      ? Rows * Cols 
-      : Rows * Cols / ALIGNMENT + 1; 
+    return Rows * Step; 
   }
 
  private:
   DataType*  Data;    //!< Pointer to the raw matrix vectorized data. 
   size_t     Rows;    //!< Number of rows in the matrix.
   size_t     Cols;    //!< Number of columns in the matrix.
-};
+  size_t     Step;    //!< Number of elements per row.
 
+  /// Allocates the correct amount of data for the matrix.
+  void allocateData();
+};
 
 // ---- Implementation ----------------------------------------------------- //
 
-
 template <uint8_t F, typename A>
-Matrix<F, A>::Matrix() : Data(nullptr), Rows(0), Cols(0) {}
+Matrix<F, A>::Matrix() : Data(nullptr), Rows(0), Cols(0), Step(0) {}
 
 template <uint8_t F, typename A>
 Matrix<F, A>::Matrix(size_t rows, size_t cols)
-    : Rows(rows), Cols(cols) {
-  using Allocator = A;
+: Rows(rows), Cols(cols) {
+  // Add padding if the number of columns is 
+  // not a multiple of the alignment size.
+  Step = (Cols % ALIGNMENT == 0) 
+       ? Cols 
+       : Cols + (ALIGNMENT - (Cols % ALIGNMENT));
 
-  const size_t totalElements = Rows * Cols;
-  const size_t alignmentDiff = totalElements % ALIGNMENT;
-
-  Data = Allocator::alloc(
-    totalElements + (alignmentDiff == 0 ? 0 : ALIGNMENT - alignmentDiff),
-    ALIGNMENT
-  );
+  allocateData();
 }
 
 template <uint8_t F, typename A>
 Matrix<F, A>::~Matrix() {
-  using Allocator = A;
+  if (Data != nullptr) {
+    A::free(Data);
+  }
+}
 
-  if (Data != nullptr) 
-    Allocator::free(Data);
+// ---- Private ------------------------------------------------------------ //
+
+template <uint8_t F, typename A>
+void Matrix<F, A>::allocateData() {
+  Data = A::alloc(Rows * Step, ALIGNMENT); 
 }
 
 } // namespace snap
