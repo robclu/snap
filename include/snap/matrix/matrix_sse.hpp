@@ -54,6 +54,12 @@ class Matrix {
   /// Destructor: Cleans up matrix memory.
   ~Matrix();
 
+  /// Data getter: Gets a pointer to the data.
+  DataType* data() { return Data; }
+
+  /// Data getter: Gets a const pointer to the data.
+  const DataType* data() const { return Data; }
+
   /// Row size getter: Gets the number of rows in the matrix.
   size_t rows() const { return Rows; }
 
