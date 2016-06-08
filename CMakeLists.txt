@@ -20,12 +20,19 @@ ENDIF(NOT CMAKE_BUILD_TYPE)
 
 # ---- Commandline Options -------------------------------------------------- #
 
-option(GENERATE_ASM "Generate assembly code"  OFF)
-option(ONLY_EXAMPLES "Generate only examples" OFF)
+option(GENERATE_ASM  "Generate assembly code"      OFF)
+option(ONLY_EXAMPLES "Generate only examples"      OFF)
+option(WITH_OPENCV   "Enable OpenCV compatibility" ON)
 
 # ---- Include directories -------------------------------------------------- #
 
 include_directories(${Snap_SOURCE_DIR}/include)
+
+# ---- OpenCv --------------------------------------------------------------- #
+
+IF(WITH_OPENCV)
+  add_definitions(-DOPENCV)
+ENDIF(WITH_OPENCV)
 
 # ---- Subdirectories ------------------------------------------------------- #
 
@@ -216,8 +223,11 @@ ENDIF()
 
 IF(NOT ONLY_EXAMPLES)
   enable_testing()
-  add_test(NAME config_tests COMMAND config_tests)
-  set(TESTS_STRING "config")
+  add_test(NAME ConfigTests  COMMAND config_tests)
+  add_test(NAME MatrixTests  COMMAND matrix_tests)
+  add_test(NAME UtilityTests COMMAND utility_tests)
+  add_test(NAME VectorTests  COMMAND vector_tests)
+  set(TESTS_STRING "config matrix utility vector")
 ENDIF()
 
 # ---- Boost ---------------------------------------------------------------- #
@@ -258,6 +268,7 @@ message("| AVX ENABLED             : ${ENABLE_AVX}"                           )
 message("| SSE ENABLED             : ${ENABLE_SSE}"                           )
 message("| GENERATE ASSEMBLY       : ${GENERATE_ASM}"                         )
 message("| NUMBER OF PROCESSORS    : ${PROC_COUNT}"                           )
+message("| OPENCV SUPPORT          : ${WITH_OPENCV}"                          )
 message("| BOOST VERSION           : ${BOOST_VERSION_HR}"                     )
 message("| TESTS                   : ${TESTS_STRING}"                         )
 message("# ---------------------------------------------------------------- #")

@@ -1,4 +1,4 @@
-//---- snap/matrix/matrix_general.hpp ---------------------- -*- C++ -*- ----//
+//---- snap/matrix/format.hpp ------------------------------ -*- C++ -*- ----//
 //
 //                                 Snap
 //                          
@@ -9,14 +9,16 @@
 //
 // ========================================================================= //
 //
-/// \file  matrix_general.hpp
-/// \brief Defiition of the general Matrix class which can be specialized for 
-///        the different platforms and matrix formats.
+/// \file  format.hpp
+/// \brief Definition of the various matrix formats and the format related
+///        traits functions.
 //
 //---------------------------------------------------------------------------//
 
-#ifndef SNAP_MATRIX_MATRIX_GENERAL_HPP
-#define SNAP_MATRIX_MATRIX_GENERAL_HPP
+#ifndef SNAP_MATRIX_FORMAT_HPP
+#define SNAP_MATRIX_FORMAT_HPP
+
+#include "snap/vector/vector.hpp"
 
 namespace snap {
 namespace mat  {
@@ -35,7 +37,14 @@ enum Format : uint8_t {
 template <uint8_t Format>
 struct format_traits;
 
+// Specialization for when the format is greyscale.
+template <>
+struct format_traits<mat::FM_GREY_8> {
+  /// Defines the data type used for 8-bit greyscale values.
+  using type = Vec16x8u;
+};
+
 } // namespace snap
 
-#endif // SNAP_MATRIX_MATRIX_GENERAL_HPP
+#endif // SNAP_MATRIX_FORMAT_HPP
 

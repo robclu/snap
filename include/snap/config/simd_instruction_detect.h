@@ -1,3 +1,5 @@
+//---- snap/config/simd_instruction_detect.h --------------- -*- C++ -*- ----//
+//
 //                                 Snap
 //                          
 //                      Copyright (c) 2016 Rob Clucas        

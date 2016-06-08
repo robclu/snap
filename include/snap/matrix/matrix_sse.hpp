@@ -18,41 +18,16 @@
 #ifndef SNAP_MATRIX_MATRIX_SSE_HPP
 #define SNAP_MATRIX_MATRIX_SSE_HPP
 
-#include "matrix_general.hpp"
+#include "matrix_fwd.hpp"
+#include "convert_sse.hpp"
 #include "snap/allocate/allocator.hpp"
-#include "snap/config/simd_instruction_detect.h"
+#include "snap/config/config.hpp"
 #include "snap/vector/vector.hpp"
 
 namespace snap {
 
-// Specialization for when the format is greyscale.
-template <>
-struct format_traits<mat::FM_GREY_8> {
-  /// Defines the data type used for 8-bit greyscale values.
-  using type = Vec16x8u;
-};
-
-/// Defines a matrix class for which SIMD operations can be used to improve
-/// processing performance. The constructor always allocates data for the
-/// elements, and the data is stored at arrays of svec types to ensure
-/// alignment and faster processing. The initial overhead of the memory
-/// allocation is insignificant relative to the additional performance gained
-/// by the vectorized and correctly aligned data.
-///
-/// The alignment requirement of the data means that extra data might be used
-/// if the number of matrix elements is not a multiple of the alignment
-/// requirement for the vectorized data types. This is typically a very small
-/// overhead, as the max number of additional elements will be less than 32.
-///
-/// The matrix should be allocated initiallly, and the data can then be
-/// overwritten using the load operations.
-///
-/// \tparam Format    The format of the matrix.
-/// \tparam Allocator The allocator for the data.
-template <
-  uint8_t  Format, 
-  typename Allocator = AlignedAllocator<typename format_traits<Format>::type>
-  >
+// Implementation of the matrix class with intel intrinsics.
+template <uint8_t  Format, typename Allocator>
 class Matrix {
  public:
   /// The data type of each vectorized element in the matrix.
@@ -65,7 +40,16 @@ class Matrix {
   /// allocator is used, and cols is not a multiple of the alignment 
   /// (snap::ALIGNMENT) each row is padded with empty bytes so that the number
   /// of column elements are aligned.
+  /// \param[in] rows The number of rows for the matrix.
+  /// \param[in] cols The number of colums for the matrix.
   Matrix(size_t rows, size_t cols);
+
+#ifdef OPENCV
+  /// Constructor: Creates a matrix from an OpenCV matrix. This copies the data
+  /// so that the data is aligned correctly and is all vectorized.
+  /// \param cvMat The opencv matrix to use to initialize the snap matrix.
+  Matrix(cv::Mat& cvMat);
+#endif
 
   /// Destructor: Cleans up matrix memory.
   ~Matrix();
@@ -110,6 +94,25 @@ Matrix<F, A>::Matrix(size_t rows, size_t cols)
 
   allocateData();
 }
+
+#ifdef OPENCV
+
+template <uint8_t F, typename A>
+Matrix<F, A>::Matrix(cv::Mat& cvMat)
+: Rows(cvMat.rows), Cols(cvMat.cols) {
+  // Add padding if the number of columns is 
+  // not a multiple of the alignment size.
+  Step = (Cols % ALIGNMENT == 0) 
+       ? Cols 
+       : Cols + (ALIGNMENT - (Cols % ALIGNMENT)); 
+  
+  allocateData();
+
+  // Convert to the correct vectorized format for this matrix.
+  mat::convert(cvMat, *this);
+}
+
+#endif // OPENCV
 
 template <uint8_t F, typename A>
 Matrix<F, A>::~Matrix() {

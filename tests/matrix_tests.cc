@@ -18,6 +18,7 @@
 
 #include <boost/test/unit_test.hpp>
 #include "snap/matrix/matrix.hpp"
+#include "snap/matrix/convert.hpp"
 
 using namespace snap;
 
@@ -63,5 +64,34 @@ BOOST_AUTO_TEST_CASE(canConstructWithUnalignedSize) {
   BOOST_CHECK(mat.step()             >  mat.cols() );
   BOOST_CHECK(mat.size()             >  rows * cols);
 }
+
+// OpenCV conversion tests
+#ifdef OPENCV
+
+BOOST_AUTO_TEST_CASE(canConvertCVMatUCharToSnapGrey) {
+  const int rows = 480, cols = 640;
+
+  cv::Mat                 cvMat(rows  , cols, CV_8UC1);
+  Matrix<mat::FM_GREY_8>  snapMat(rows, cols);
+
+  // Convert the opencv unsigned char mat to a snap one.
+  mat::convert(cvMat, snapMat);
+
+  BOOST_CHECK(0 == 0);
+}
+
+BOOST_AUTO_TEST_CASE(canCostructSnapMatrixFromCVmat) {
+  const int rows = 480, cols = 640;
+
+  cv::Mat                 cvMat(rows, cols, CV_8UC1);
+  Matrix<mat::FM_GREY_8>  snapMat(cvMat);
+
+  BOOST_CHECK(snapMat.rows() == cvMat.rows);
+  BOOST_CHECK(snapMat.cols() == cvMat.cols);
+
+  // TODO: Check that the data ias correct.
+}
+
+#endif
 
 BOOST_AUTO_TEST_SUITE_END()

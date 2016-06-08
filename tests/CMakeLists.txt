@@ -17,12 +17,17 @@ find_package(Boost COMPONENTS
   REQUIRED
 )
 
+IF(WITH_OPENCV)
+  find_package(OpenCV 3 REQUIRED)
+ENDIF(WITH_OPENCV)
+
 link_directories(${Boost_LIBRARY_DIRS})
+include_directories(${OpenCV_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 
 ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)
 
 set(TEST_BIN_DIR ${Snap_SOURCE_DIR}/bin/tests)
-set(ASM_DIR ${Snap_SOURCE_DIR}/asm/tests)
+set(ASM_DIR      ${Snap_SOURCE_DIR}/asm/tests)
 
 # ---- Make Test Function --------------------------------------------------- #
 
@@ -57,6 +62,7 @@ set(TEST_LIBS
   ${Boost_FILESYSTEM_LIBRARY} 
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+  ${OpenCV_LIBS}
 )
 
 MakeTest(TEST_NAME TEST_FILES TEST_LIBS TEST_BIN_DIR)
@@ -76,6 +82,7 @@ set(TEST_LIBS
   ${Boost_FILESYSTEM_LIBRARY} 
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+  ${OpenCV_LIBS}
 )
 
 MakeTest(TEST_NAME TEST_FILES TEST_LIBS TEST_BIN_DIR)
@@ -95,6 +102,7 @@ set(TEST_LIBS
   ${Boost_FILESYSTEM_LIBRARY} 
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+  ${OpenCV_LIBS}
 )
 
 MakeTest(TEST_NAME TEST_FILES TEST_LIBS TEST_BIN_DIR)
@@ -114,6 +122,7 @@ set(TEST_LIBS
   ${Boost_FILESYSTEM_LIBRARY} 
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+  ${OpenCV_LIBS}
 )
 
 MakeTest(TEST_NAME TEST_FILES TEST_LIBS TEST_BIN_DIR)
