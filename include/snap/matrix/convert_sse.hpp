@@ -17,7 +17,7 @@
 #ifndef SNAP_MATRIX_CONVERT_SSE_HPP
 #define SNAP_MATRIX_CONVERT_SSE_HPP
 
-#include "matrix_sse.hpp"
+#include "matrix_base.hpp"
 #include "snap/config/opencv.h"
 #include "iostream"
 
@@ -38,27 +38,37 @@ namespace detail {
 
 /// Defines a class to dispatch the appropriate conversion function.
 /// /tparam MatTypes The types of the matrices being converted to and from.
-template <typename... MatType>
+template <bool Enable, typename... MatType>
 struct conversion_dispatcher;
-
-
-// Specialization for a snap SSE matrix to a snap SSE matrix.
-template <uint8_t FormatA, uint8_t FormatB>
-struct conversion_dispatcher<Matrix<FormatA>, Matrix<FormatB>> {
-};
-
 
 #ifdef OPENCV
 
-// Specialization for opencv matrix to snap greyscale matrix.
-template <>
-struct conversion_dispatcher<cv::Mat, Matrix<FM_GREY_8>> {
+// Specialization for opencv matrix to snap greyscale fixed matrix.
+template <typename MatrixType>
+struct conversion_dispatcher<
+    traits::matrix_traits<MatrixType>::is_fixed         &&
+    traits::matrix_traits<MatrixType>::format == FM_GREY_8, 
+    cv::Mat, MatrixType> {
   // Alias for the type of snapmatrix.
-  using SnapMat = typename Matrix<FM_GREY_8>;
+  using SnapMat = typename MatrixType;
 
   // Conversion implementation function.
-  static inline void convertImpl(const cv::Mat& matFrom, SnapMat>& matTo) {
-    static constexpr auto snapMatWidth = SnapMat::DataType::width;
+  static inline void convertImpl(const cv::Mat& matFrom, SnapMat& matTo) {
+  }
+};
+
+// Specialization for opencv matrix to snap greyscale dynamic matrix.
+template <typename MatrixType>
+struct conversion_dispatcher<
+    traits::matrix_traits<MatrixType>::is_dynamic       &&
+    traits::matrix_traits<MatrixType>::format == FM_GREY_8,
+    cv::Mat, MatrixType> {
+  // Alias for the type of snap matrix.
+  using SnapMat = typename MatrixType;
+
+  // Conversion implementation function.
+  static inline convertImpl(const cv::Mat& matFrom, SnapMat& matTo) {
+    static constexpr auto snapMatWidth = SnapMat::VecDataType::width;
 
     // snapMatWidth is always a power of 2.
     const size_t stepDiff    = matFrom.cols & (snapMatWidth - 1);
@@ -86,17 +96,6 @@ struct conversion_dispatcher<cv::Mat, Matrix<FM_GREY_8>> {
         fromData + snapMatWidth;
       }
     }
-  }
-};
-
-// Specialization for snap grepscale matrix to opencv matrix.
-template <>
-struct conversion_dispatcher<Matrix<FM_GREY_8>, cv::Mat> {
-  // Alias for the type of snap matrix.
-  using SnapMat = typename Matrix<FM_GREY_8>;
-
-  // Conversion implementation.
-  static inline void convertImpl(const SnapMat& matFrom, cv::Mat& matTo) {
   }
 };
 

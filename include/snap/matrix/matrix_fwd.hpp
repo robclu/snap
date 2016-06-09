@@ -17,33 +17,23 @@
 #ifndef SNAP_MATRIX_MATRIX_FWD_HPP
 #define SNAP_MATRIX_MATRIX_FWD_HPP
 
-#include "format.hpp"
-#include "snap/allocate/allocator.hpp"
 
 namespace snap {
 
-/// Defines a matrix class for which SIMD operations can be used to improve
-/// processing performance. The constructor always allocates data for the
-/// elements, and the data is stored at arrays of svec types to ensure
-/// alignment and faster processing. The initial overhead of the memory
-/// allocation is insignificant relative to the additional performance gained
-/// by the vectorized and correctly aligned data.
-///
-/// The alignment requirement of the data means that extra data might be used
-/// if the number of matrix elements is not a multiple of the alignment
-/// requirement for the vectorized data types. This is typically a very small
-/// overhead, as the max number of additional elements will be less than 32.
-///
-/// The matrix should be allocated initiallly, and the data can then be
-/// overwritten using the load operations.
-///
-/// \tparam Format    The format of the matrix.
-/// \tparam Allocator The allocator for the data.
-template <
-  uint8_t  Format, 
-  typename Allocator = AlignedAllocator<typename format_traits<Format>::type>
-  >
-class Matrix;
+/// Defines a matrix class with a fixed size.
+/// \tparam Format The format of the matrix which defines the type of the
+///         elements.
+/// \tparam Rows   The number of rows in the matrix.
+/// \tparam Cols   The number of columns in the matrix.
+template <uint8_t Format, size_t Rows, size_t Cols>
+class MatrixFixed;
+
+/// Defines a matrix class with a dynamic size.
+/// \tparam Format    The format of the matrix which defines the type of the
+///         elements.
+/// \tparam Allocator The type of allocator used to allocate the data.
+template <uint8_t Format, typename Allocator>
+class MatrixDynamic;
 
 } // namespace snap
 

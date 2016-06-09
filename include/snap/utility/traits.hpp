@@ -17,6 +17,7 @@
 #ifndef SNAP_UTILITY_TRAITS_HPP
 #define SNAP_UTILITY_TRAITS_HPP
 
+#include "snap/matrix/matrix_traits.hpp"
 #include <tuple>
 
 namespace snap   {
@@ -127,6 +128,21 @@ struct function_traits<ReturnType(ClassType::*)(Args...) const> {
       return detail::arg_traits<Idx, Args...>::defaultArg();
     }
   };
+};
+
+/// Defines a struct for getting the traits of a matrix.
+/// \tparam MatrixType The type of the matrix for which the traits must be
+///         fetched.
+template <typename MatrixType>
+struct matrix_traits {
+  /// Returns true if the matrix is a fixed size matrix.
+  static constexpr bool is_fixed = MatrixType::type == mat::FIXED;
+
+  /// Returns true if the matrix is a dynamically size matrix.
+  static constexpr bool is_dynamic = MatrixType::type == mat::DYNAMIC;
+
+  /// Returns the format of the matrix data.
+  static constexpr uint8_t format = MatrixType::format;
 };
 
 /// Defines a struct to check if a span (range of numbers) is valid for

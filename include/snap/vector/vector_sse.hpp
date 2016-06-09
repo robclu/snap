@@ -34,8 +34,9 @@ namespace snap {
 template <typename DType>
 class Vector<DType, 16> {
  public:
-  using VecDType = __m128i;               //!< Alias for the vector data type.
-  using VecType  = Vector<DType, 16>;     //!< Alias for the type of vector.
+  using BaseDataType = DType;                   //!< Type of each element.
+  using VecDataType  = __m128i;                 //!< Type of internal vec type.
+  using VecType      = Vector<BaseType, 16>;    //!< Type of the vector.
 
   static constexpr uint8_t width = 16;    //!< Width of the vector.
 
@@ -47,16 +48,16 @@ class Vector<DType, 16> {
   /// Constructor: Create vector from iternal intrinsic type.
   /// \param[in] x The intrinsic variable to use to initialize the internal 
   ///              vector.
-  Vector(const VecDType& x);
+  Vector(const VecDataType& x);
 
   /// Constructor: Broadcasts a single 8 bit int of type DType into the vector. 
   /// \param[in] x The 8 bit int to broadcast.
-  Vector(DType x);
+  Vector(BaseType x);
 
   /// Constructor: Sets a pointer to an array of elements as vector elements.
   /// \param[in] p A pointer to the start of the elements to load into to
   ///              vector.
-  Vector(DType* p);
+  Vector(BaseType* p);
 
   // ---- Operators -------------------------------------------------------- //
   
@@ -67,12 +68,12 @@ class Vector<DType, 16> {
   /// Assignment operator: Allows the conversion from intrinsic types.
   /// \param[in] x The intrinsic variable to use ti set the internal vector.
   /// \return      A reference to the vector.
-  VecType& operator=(const VecDType& x);
+  VecType& operator=(const VecDataType& x);
 
   /// Access operator: Allows a specific element of the vector to be fetched.
   /// This does not check bounds due to performance implications.
   /// \param[in] idx The index of the element to fetch.
-  DType operator[](uint8_t idx) const;
+  BaseType operator[](uint8_t idx) const;
 
   // ---- General Operations ----------------------------------------------- //
  
@@ -105,17 +106,17 @@ class Vector<DType, 16> {
   /// value.
   /// \param[in] idx The index of the element to set the value of.
   /// \param[in] val The value to set the element to.
-  void set(uint8_t idx, DType val);
+  void set(uint8_t idx, BaseType val);
 
  private:
-  VecDType Data;                            //!< Data for the vector.
+  VecDataType Data; //!< Data for the vector.
 
 } SNAP_ALIGNED;
 
 // ---- Implementation ----------------------------------------------------- //
 
 template <typename DT> SNAP_INLINE
-Vector<DT, 16>::Vector(const VecDType& x) {
+Vector<DT, 16>::Vector(const VecDataType& x) {
   Data = x;
 }
 
@@ -135,7 +136,7 @@ Vector<DT, 16>::operator __m128i() const {
 }
 
 template <typename DT> SNAP_INLINE 
-Vector<DT, 16>& Vector<DT, 16>::operator=(const VecDType& x) {
+Vector<DT, 16>& Vector<DT, 16>::operator=(const VecDataType& x) {
   Data = x;
   return *this;
 }
@@ -149,30 +150,30 @@ DT Vector<DT, 16>::operator[](uint8_t idx) const {
 
 template <typename DT> SNAP_INLINE
 void Vector<DT, 16>::load(void* p) {
-  Data = _mm_loadu_si128(reinterpret_cast<VecDType const*>(p));
+  Data = _mm_loadu_si128(reinterpret_cast<VecDataType const*>(p));
 }
 
 template <typename DT> SNAP_INLINE 
 void Vector<DT, 16>::loada(void* p) {
-  Data = _mm_load_si128(reinterpret_cast<VecDType const*>(p));
+  Data = _mm_load_si128(reinterpret_cast<VecDataType const*>(p));
 }
 
 template <typename DT> SNAP_INLINE 
 void Vector<DT, 16>::store(void* p) const {
-  _mm_store_si128(reinterpret_cast<VecDType*>(p), Data);
+  _mm_store_si128(reinterpret_cast<VecDataType*>(p), Data);
 }
 
 template <typename DT> SNAP_INLINE 
 void Vector<DT, 16>::storeu(void* p) const {
-  _mm_storeu_si128(reinterpret_cast<VecDType*>(p), Data);
+  _mm_storeu_si128(reinterpret_cast<VecDataType*>(p), Data);
 }
 
 template <typename DT> SNAP_INLINE 
 void Vector<DT, 16>::set(uint8_t idx, DT val) {
   SNAP_ALIGN(16) DT tmp[16];
-  _mm_store_si128(reinterpret_cast<VecDType*>(tmp), Data);
+  _mm_store_si128(reinterpret_cast<VecDataType*>(tmp), Data);
   tmp[idx] = val;
-  Data = _mm_load_si128(reinterpret_cast<VecDType const*>(tmp));
+  Data = _mm_load_si128(reinterpret_cast<VecDataType const*>(tmp));
 }
 
 } // namespace snap
