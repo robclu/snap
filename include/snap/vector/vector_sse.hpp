@@ -34,7 +34,7 @@ namespace snap {
 template <typename DType>
 class Vector<DType, 16> {
  public:
-  using BaseDataType = DType;                   //!< Type of each element.
+  using BaseType     = DType;                   //!< Type of each element.
   using VecDataType  = __m128i;                 //!< Type of internal vec type.
   using VecType      = Vector<BaseType, 16>;    //!< Type of the vector.
 

@@ -17,8 +17,10 @@
 #ifndef SNAP_MATRIX_CONVERT_SSE_HPP
 #define SNAP_MATRIX_CONVERT_SSE_HPP
 
+#include "format.hpp"
 #include "matrix_base.hpp"
 #include "snap/config/opencv.h"
+#include "snap/utility/traits.hpp"
 #include "iostream"
 
 namespace snap {
@@ -38,19 +40,17 @@ namespace detail {
 
 /// Defines a class to dispatch the appropriate conversion function.
 /// /tparam MatTypes The types of the matrices being converted to and from.
-template <bool Enable, typename... MatType>
+template <typename MatFromType, typename MatToType, typename Enable = void>
 struct conversion_dispatcher;
 
 #ifdef OPENCV
 
 // Specialization for opencv matrix to snap greyscale fixed matrix.
 template <typename MatrixType>
-struct conversion_dispatcher<
-    traits::matrix_traits<MatrixType>::is_fixed         &&
-    traits::matrix_traits<MatrixType>::format == FM_GREY_8, 
-    cv::Mat, MatrixType> {
+struct conversion_dispatcher<cv::Mat, MatrixType, typename std::enable_if_t<
+    MatrixType::formatType == FM_GREY_8 && MatrixType::type == FIXED>> {
   // Alias for the type of snapmatrix.
-  using SnapMat = typename MatrixType;
+  using SnapMat = MatrixType;
 
   // Conversion implementation function.
   static inline void convertImpl(const cv::Mat& matFrom, SnapMat& matTo) {
@@ -59,15 +59,13 @@ struct conversion_dispatcher<
 
 // Specialization for opencv matrix to snap greyscale dynamic matrix.
 template <typename MatrixType>
-struct conversion_dispatcher<
-    traits::matrix_traits<MatrixType>::is_dynamic       &&
-    traits::matrix_traits<MatrixType>::format == FM_GREY_8,
-    cv::Mat, MatrixType> {
+struct conversion_dispatcher<cv::Mat, MatrixType, typename std::enable_if_t<
+    MatrixType::formatType == FM_GREY_8 && MatrixType::type == DYNAMIC>> {
   // Alias for the type of snap matrix.
-  using SnapMat = typename MatrixType;
+  using SnapMat = MatrixType;
 
   // Conversion implementation function.
-  static inline convertImpl(const cv::Mat& matFrom, SnapMat& matTo) {
+  static inline void convertImpl(const cv::Mat& matFrom, SnapMat& matTo) {
     static constexpr auto snapMatWidth = SnapMat::VecDataType::width;
 
     // snapMatWidth is always a power of 2.

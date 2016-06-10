@@ -34,13 +34,13 @@ struct get_step;
 template <size_t Cols, size_t Alignment>
 struct get_step<true, Cols, Alignment> {
   static constexpr size_t value = Cols;
-}
+};
 
 template <size_t Cols, size_t Alignment> 
 struct get_step<false, Cols, Alignment> {
   static constexpr size_t value = 
-    Cols + (Alignemnt - (Cols & (Alignment - 1)));
-}
+    Cols + (Alignment - (Cols & (Alignment - 1)));
+};
 
 // ---- Definition : Matrix Fixed ------------------------------------------ //
 
@@ -60,14 +60,14 @@ class MatrixFixed {
   /// Defines the format of the internal data.
   static constexpr uint8_t formatType = Format;
   /// Defines the type of the matrix.
-  static constexpr uint8_t type = mat::FIXED;
+  static constexpr uint8_t type       = mat::FIXED;
   /// Returns the number of rows at compile time.
-  static constexpr size_t rows = Rows;
+  static constexpr size_t  rowsCx     = Rows;
   /// Returns the number of columns at compile time.
-  static constexpr size_t cols = Cols;
+  static constexpr size_t  colsCx     = Cols;
   /// Returns the step size of the matrix.
-  static constexpr size_t step = 
-    get_step<!(Cols & (ALIGNMENT - 1)), Cols, ALIGNEMNT>::value;
+  static constexpr size_t  stepCx = 
+    get_step<!(Cols & (ALIGNMENT - 1)), Cols, ALIGNMENT>::value;
 
   /// Constructor: Creates an empty matrix with the fixed size.
   MatrixFixed();
@@ -96,7 +96,8 @@ class MatrixFixed {
 
  private:
   /// The array type of the vector elements.
-  using ArrayType = std::array<VecDataType, rows * step / VecDataType::width>;
+  using ArrayType = std::array<VecDataType, 
+                      rowsCx * stepCx / VecDataType::width>;
   
   ArrayType Data; //!< Raw array of vectorized elements. 
 };
@@ -177,10 +178,10 @@ class MatrixDynamic {
   }
 
  private:
-  DataType*  Data;    //!< Pointer to the raw matrix vectorized data. 
-  size_t     Rows;    //!< Number of rows in the matrix.
-  size_t     Cols;    //!< Number of columns in the matrix.
-  size_t     Step;    //!< Number of elements per row.
+  VecDataType*  Data;    //!< Pointer to the raw matrix vectorized data. 
+  size_t        Rows;    //!< Number of rows in the matrix.
+  size_t        Cols;    //!< Number of columns in the matrix.
+  size_t        Step;    //!< Number of elements per row.
 
   /// Allocates the correct amount of data for the matrix.
   void allocateData();
